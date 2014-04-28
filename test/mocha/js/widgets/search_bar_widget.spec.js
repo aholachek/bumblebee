@@ -11,9 +11,9 @@ define(['jquery', 'js/widgets/search_bar/search_bar_widget', 'js/components/beeh
       beehive.addService('PubSub', pubsub);
       key = pubsub.getPubSubKey();
 
-      widget = new SearchBarWidget;
+      widget = new SearchBarWidget();
       widget.activate(beehive.getHardenedInstance());
-      w = widget.render();
+      w = widget.getView().render().el;
 
       $("#test").append(w)
 

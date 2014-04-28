@@ -1,5 +1,6 @@
 <div class="row">
     <div class="col-sm-8">
+    <form name="main-query">
         <div class="input-group">
             <div class="input-group-btn">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Search Fields
@@ -7,33 +8,33 @@
                 </button>
                 <ul class="dropdown-menu field-options">
                 <i class="glyphicon glyphicon-question-sign"></i>
-                    <li><span data-field="author">Author</span>
+                    <li><button class="btn btn-link btn-xs" data-field="author">Author</button>
                     </li>
-                    <li><span data-field="^author">First Author</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="^author">First Author</button>
                     </li>
-                    <li><span data-field="title">Title</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="title">Title</button>
                     </li>
-                    <li><span data-field="year">Year</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="year">Year</button>
                     </li>
-                    <li><span data-field="bibstem">Publication</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="bibstem">Publication</button>
                     </li>
-                    <li><span data-field="full">Fulltext</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="full">Fulltext</button>
                     </li>
                     <li class="divider"></li>
                                     <i class="glyphicon glyphicon-question-sign"></i>
 
-                    <li><span data-field="operator-trending">Trending(...)</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="operator-trending">Trending(...)</button>
                     </li>
-                    <li><span data-field="operator-useful">Useful(...)</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="operator-useful">Useful(...)</button>
                     </li>
-                    <li><span data-field="operator-instructive">Instructive(...)</span>
+                    <li><button class="btn btn-link btn-xs"  data-field="operator-instructive">Instructive(...)</button>
                     </li>
                 </ul>
             </div>
             <!-- /btn-group -->
             <input type="text" class="form-control q">
             <span class="input-group-addon btn btn-primary search-submit">Submit</span>
-
+    </form>
         </div>
         <!-- /input-group -->
     </div>

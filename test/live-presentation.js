@@ -11,14 +11,13 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
   queryMediator.activate(beehive);
 
   var s = new SearchBar();
-  console.log(s)
   var r = new ResultsRender()
 
   s.activate(beehive.getHardenedInstance())
   r.activate(beehive.getHardenedInstance())
 
-  $("#top").append(s.render())
-  $("#middle").append(r.render())
+  $("#top").append(s.getView().render().el)
+  $("#middle").append(r.getView().render().el)
 
 
 

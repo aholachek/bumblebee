@@ -2,7 +2,8 @@
  * Created by alex on 4/23/14.
  */
 define(['backbone', 'marionette', 'js/components/api_query',
-    'js/components/api_request', 'js/widgets/base/base_widget'],
+    'js/components/api_request', 'js/widgets/base/base_widget'
+  ],
   function(
     Backbone, Marionette, ApiQuery, ApiRequest, BaseWidget) {
 
@@ -22,9 +23,13 @@ define(['backbone', 'marionette', 'js/components/api_query',
        registers the callback, and returns the apiRequest so
        that you can send it to pubsub in response to INVITING_REQUEST*/
 
-      initialize : function(options){
+      initialize: function(options) {
         this._queriesInProgress = {};
-        BaseWidget.prototype.initialize.call(this,options);
+        BaseWidget.prototype.initialize.call(this, options);
+      },
+
+      processResponse: function(apiResponse) {
+        throw new Error("you need to customize this function");
       },
 
       /**
@@ -42,7 +47,28 @@ define(['backbone', 'marionette', 'js/components/api_query',
         if (this._queriesInProgress[queryId]) {
           throw new Error("There is already a callback for: " + queryId);
         }
-        this._queriesInProgress[queryId] = {callback: callback, data: data};
+        this._queriesInProgress[queryId] = {
+          callback: callback,
+          data: data
+        };
+      },
+
+      dispatchRequest: function(apiQuery) {
+        var id, req;
+        this.setCurrentQuery(apiQuery);
+
+        id = apiQuery.url();
+
+        if (!callback) {
+          //it's responding to INVITING_REQUEST, so just do default information request
+          this.registerCallback(id, this.processResponse)
+        };
+
+        req = this.composeRequest(apiQuery);
+        if (req) {
+          this.pubsub.publish(this.pubsub.DELIVERING_REQUEST, req);
+        }
+
       },
 
       composeRequest: function(apiQuery) {
@@ -68,15 +94,14 @@ define(['backbone', 'marionette', 'js/components/api_query',
        is probably the only one the widget will need
        to register to DELIVERING_RESPONSE
        */
-      processResponse: function(apiResponse) {
+      assignCallbackToResponse: function(apiResponse) {
         var id = apiResponse.getApiQuery().url();
         var parameters, callback;
 
         //find the callback based on the key of the query
         if (this._queriesInProgress[id]) {
           callback = this._queriesInProgress[id].callback;
-        }
-        else {
+        } else {
           console.warn("Widget received a response for which it has no callback: " + id);
           return;
         }

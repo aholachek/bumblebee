@@ -1,6 +1,8 @@
-define(['marionette', 'backbone', 'js/components/api_request', 'js/components/api_query', 'hbs!./templates/item-template', 'hbs!./templates/list-template'],
+define(['marionette', 'backbone', 'underscore', 'js/components/api_request', 'js/components/api_query',
+    'js/widgets/base/base_widget', 'hbs!./templates/item-template', 'hbs!./templates/list-template'
+  ],
 
-  function(Marionette, Backbone, ApiRequest, ApiQuery, ItemTemplate, ListTemplate) {
+  function(Marionette, Backbone, _, ApiRequest, ApiQuery, BaseWidget, ItemTemplate, ListTemplate) {
 
     var ItemModel = Backbone.Model.extend({
 
@@ -55,10 +57,15 @@ define(['marionette', 'backbone', 'js/components/api_request', 'js/components/ap
       toggleExtraInfo: function(e) {
         e.preventDefault();
         this.$(".more-info").toggleClass("hide");
+        if (this.$(".more-info").hasClass("hide")){
+          this.$(".view-more").text("more info...")
+        }
+        else{
+          this.$(".view-more").text("hide info")
+        }
       }
 
     });
-
 
     var ResultsListView = Marionette.CompositeView.extend({
       template: ListTemplate,
@@ -68,67 +75,38 @@ define(['marionette', 'backbone', 'js/components/api_request', 'js/components/ap
     });
 
 
-    var ResultsListController = Marionette.Controller.extend({
+    var ResultsListController = BaseWidget.extend({
 
-      activate: function(beehive) {
 
-        this.pubsub = beehive.Services.get('PubSub');
+      initialize: function(options) {
 
-		//bind all callback methods here
-        _.bindAll(this, "requestData", "receiveData");
+        this.collection = new ListCollection();
+        this.view = new ResultsListView({
+          collection: this.collection
+        });
 
-        this.pubsub.subscribe(this.pubsub.INVITING_REQUEST, this.requestData);
-        this.pubsub.subscribe(this.pubsub.DELIVERING_RESPONSE, this.receiveData);
-
+        BaseWidget.prototype.initialize.call(this, options)
       },
 
-      requestData: function(apiQuery) {
-
-        var newQuery = apiQuery.clone();
-
-        newQuery.set({
+      composeRequest: function(apiQuery) {
+        var q = this.customizeQuery({
           "hl": "true",
           "hl.fl": "title,abstract"
-
         });
 
-        var apiRequest = new ApiRequest({
-          query: newQuery
+        return new ApiRequest({
+          target: 'search',
+          query: q
         });
-
-        this.pubsub.publish(this.pubsub.DELIVERING_REQUEST, apiRequest)
-
       },
 
-      receiveData: function(apiResponse) {
+      processResponse: function(apiResponse) {
 
         this.collection.reset(apiResponse.toJSON(), {
           parse: true
         })
 
       },
-
-      initialize: function() {
-        
-        this.collection = new ListCollection();
-        this.view = new ResultsListView({
-          collection: this.collection
-        });
-      },
-
-      render: function() {
-        this.view.render();
-        return this.view.el;
-      },
-
-      returnView: function() {
-        return this.view;
-      },
-
-      onClose : function(){
-        this.view.close()
-
-      }
 
     });
 

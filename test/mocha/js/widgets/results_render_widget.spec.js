@@ -19,7 +19,7 @@ define(['marionette', 'backbone', 'js/widgets/results_render/results_render_widg
 
         widget.activate(beehive.getHardenedInstance());
 
-        $("#test").append(widget.render());
+        $("#test").append(widget.getView().render().el);
 
 
         //so test pubsub will always respond to a delivering_request with test data
@@ -88,18 +88,6 @@ define(['marionette', 'backbone', 'js/widgets/results_render/results_render_widg
         expect(widget.view).to.be.instanceof(Backbone.Marionette.CompositeView);
 
       });
-
-      //should this go in all widget tests?
-      it("should have a main widget with an activate, afterActivate, close, and render method", function() {
-
-        expect(typeof widget.activate).to.equal("function");
-
-        expect(typeof widget.close).to.equal("function");
-
-        expect(typeof widget.render).to.equal("function");
-
-      });
-
 
       it("should show highlights (if there are any) when a user clicks on 'show more'", function() {
 

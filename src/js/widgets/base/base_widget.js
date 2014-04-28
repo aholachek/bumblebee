@@ -4,12 +4,19 @@ define(['backbone', 'marionette',
   Backbone, Marionette, ApiQuery, ApiRequest) {
 
   /**
-   * A pubsub based widget that contains the basic functionality
-   * you may want to override certain methods and pass your
-   * own custom template:
+   * A pubsub based widget with basic functionality. For
+   *  a basic widget, you would only need to customize the composeRequest
+   *  and processResponse functions for pubsub functionality. Skeletons of
+   *  those functions are provided below. You would also probably want to write
+   *  your own initialize method that creates instances of any views, collections or 
+   *   models your widget will need.
    *
    * var newWidgetClass = BaseWidget.extend({
-   *   activate: function() { .....}
+   *   initialize : function(options){
+   *      BaseWidget.prototype.initialize.call(this, options)
+   *    },
+   *   composeRequest : function(){},
+   *   processRequest : function(){}
    * });
    *
    * newWidgetInstance = newWidgetClass();
@@ -57,14 +64,11 @@ define(['backbone', 'marionette',
      * Default callback to be called by PubSub on 'INVITING_REQUEST'
      */
     dispatchRequest: function(apiQuery) {
-      var q = this.customizeQuery(apiQuery);
-      if (q) {
-        this.setCurrentQuery(q);
-        var req = this.composeRequest(q);
+      this.setCurrentQuery(apiQuery);
+      var req = this.composeRequest(apiQuery);
         if (req) {
           this.pubsub.publish(this.pubsub.DELIVERING_REQUEST, req);
         }
-      }
     },
 
     /**
@@ -83,9 +87,11 @@ define(['backbone', 'marionette',
      * @returns {ApiRequest}
      */
     composeRequest: function(apiQuery) {
+      var q = this.customizeQuery();
+
       return new ApiRequest({
         target: 'search',
-        query: apiQuery
+        query: q
       });
     },
 
@@ -113,18 +119,13 @@ define(['backbone', 'marionette',
      * */
     customizeQuery: function(queryParams) {
       var query;
-      if (queryParams instanceof  ApiQuery) {
-        // do something here
-        query = queryParams;
-      }
-      else {
-        query = this.getCurrentQuery();
+
+      query = this.getCurrentQuery();
         if (queryParams) {
           _.each(queryParams, function(v, k) {
             query.set(k, v)
           });
         };
-      }
       return query
     },
 
