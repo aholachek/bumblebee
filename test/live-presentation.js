@@ -1,9 +1,8 @@
-require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_mediator', 'js/services/api',
-  'jquery', 'underscore',
-  'js/widgets/search_bar/search_bar_widget', 'js/widgets/results_render/results_render_widget',
-  'js/widgets/facet/facet-widget', 'js/widgets/query_info/query_info_widget'
-], function(BeeHive, PubSub, QueryMediator, Api, $, _, SearchBar, ResultsRender, facetFactory, QueryInfoWidget) {
-
+require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_mediator',
+  'js/services/api', 'jquery', 'underscore', 'js/widgets/search_bar/search_bar_widget',
+  'js/widgets/results_render/results_render_widget', 'js/widgets/facet/facet-widget',
+  'js/widgets/query_info/query_info_widget', 'js/widgets/tabs/tabs_widget'
+], function (BeeHive, PubSub, QueryMediator, Api, $, _, SearchBar, ResultsRender, facetFactory, QueryInfoWidget, TabsWidget) {
 
   var beehive = new BeeHive();
   beehive.addService('PubSub', new PubSub());
@@ -14,83 +13,83 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
   var queryInfo = new QueryInfoWidget();
 
   var s = new SearchBar();
-  var r = new ResultsRender({pagination: {rows: 40, start:0}});
+  var r = new ResultsRender({pagination: {rows: 40, start: 0}});
   var c = facetFactory.makeGraphFacet({
-    facetName: "citation_count",
+    facetName     : "citation_count",
     userFacingName: "Citations",
-    xAxisTitle: "Citation Count",
-    openByDefault: true,
+    xAxisTitle    : "Citation Count",
+    openByDefault : true,
   });
 
   var a = facetFactory.makeHierarchicalCheckboxFacet({
-    facetName: "author",
+    facetName     : "author",
     userFacingName: "Authors",
-    openByDefault: true,
-    preprocess: ["titleCase", "removeSlash"]
+    openByDefault : true,
+    preprocess    : ["titleCase", "removeSlash"]
   })
   var keywords = facetFactory.makeBasicCheckboxFacet({
-    facetName: "keyword",
+    facetName     : "keyword",
     userFacingName: "Keywords",
-    openByDefault: false,
-    preprocess: ["titleCase", "removeSlash"]
+    openByDefault : false,
+    preprocess    : ["titleCase", "removeSlash"]
   })
 
   var database = facetFactory.makeBasicCheckboxFacet({
-    facetName: "database",
+    facetName     : "database",
     userFacingName: "Databases",
-    openByDefault: true,
-    preprocess: "titleCase",
+    openByDefault : true,
+    preprocess    : "titleCase",
   })
   var data = facetFactory.makeBasicCheckboxFacet({
-    facetName: "data",
+    facetName     : "data",
     userFacingName: "Data",
-    openByDefault: false,
-    preprocess: "allCaps",
+    openByDefault : false,
+    preprocess    : "allCaps",
   })
 
   var vizier = facetFactory.makeBasicCheckboxFacet({
-    facetName: "vizier",
+    facetName     : "vizier",
     userFacingName: "Vizier Tables",
-    openByDefault: false,
-    preprocess: "allCaps",
+    openByDefault : false,
+    preprocess    : "allCaps",
   })
 
   var pub = facetFactory.makeBasicCheckboxFacet({
-    facetName: "bibstem",
+    facetName     : "bibstem",
     userFacingName: "Publications",
-    openByDefault: false,
-    preprocess: "allCaps",
-    multiLogic: ["or", "exclude"]
+    openByDefault : false,
+    preprocess    : "allCaps",
+    multiLogic    : ["or", "exclude"]
   })
   var bibgroup = facetFactory.makeBasicCheckboxFacet({
-    facetName: "bibgroup",
+    facetName     : "bibgroup",
     userFacingName: "Bib Groups",
-    openByDefault: false,
-    preprocess: "allCaps",
-    multiLogic: ["or", "exclude"]
+    openByDefault : false,
+    preprocess    : "allCaps",
+    multiLogic    : ["or", "exclude"]
   })
 
   var grants = facetFactory.makeHierarchicalCheckboxFacet({
-    facetName: "grant",
+    facetName     : "grant",
     userFacingName: "Grants",
-    openByDefault: false,
-    preprocess: ["allCaps", "removeSlash"],
-    multiLogic: ["or", "exclude"]
+    openByDefault : false,
+    preprocess    : ["allCaps", "removeSlash"],
+    multiLogic    : ["or", "exclude"]
   })
 
   var refereed = facetFactory.makeBasicCheckboxFacet({
-    facetName: "property",
+    facetName     : "property",
     userFacingName: "Refereed Status",
-    openByDefault: true,
-    multiLogic: "fullSet",
-    extractFacets: function(facets) {
+    openByDefault : true,
+    multiLogic    : "fullSet",
+    extractFacets : function (facets) {
       var returnList = [];
-      _.each(facets, function(d,i ){
-        if (d ==="refereed"){
-          returnList.push("Refereed", facets[i+1])
+      _.each(facets, function (d, i) {
+        if (d === "refereed") {
+          returnList.push("Refereed", facets[i + 1])
         }
-        else if (d ==="notrefereed"){
-           returnList.push("Non-Refereed", facets[i+1])
+        else if (d === "notrefereed") {
+          returnList.push("Non-Refereed", facets[i + 1])
         }
       })
       return returnList
@@ -98,10 +97,10 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
   })
 
   var y = facetFactory.makeGraphFacet({
-    facetName: "year",
+    facetName     : "year",
     userFacingName: "Year",
-    xAxisTitle: "Year",
-    openByDefault: true,
+    xAxisTitle    : "Year",
+    openByDefault : true,
   });
 
   queryInfo.activate(beehive.getHardenedInstance())
@@ -119,8 +118,6 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
   grants.activate(beehive.getHardenedInstance())
   refereed.activate(beehive.getHardenedInstance())
 
-
-
   $("#top").append(s.getView().render().el)
 
   $("#middle").append(r.getView().render().el)
@@ -135,12 +132,19 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
   $("#left").append(vizier.getView().render().el)
   $("#left").append(grants.getView().render().el)
 
+  var tabs = new TabsWidget({tabs: [
+    {title: "Years", view: y.getView(), id: "year-dist", default : true},
+    {title : "Citations", view: c.getView(), id: "citations-dist"}
+  ]})
 
+  var tabs2 = new TabsWidget({
+    tabs : [{title: "Your Query", view:queryInfo.getView(), id : "your-query", default:true  }]
+  })
+  console.log()
 
+  $("#right").append(tabs.render().el)
 
-  $("#right").append(queryInfo.getView().render().el)
-  $("#right").append(y.getView().render().el)
-  $("#right").append(c.getView().render().el)
+  $("#right").append(tabs2.render().el)
 
 
 

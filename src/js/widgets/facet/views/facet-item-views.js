@@ -1,7 +1,9 @@
 define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
-    'hbs!../templates/facet-slider', 'hbs!../templates/facet-graph', '../facet-collection', 'jquery-ui'
+    'hbs!../templates/facet-slider', 'hbs!../templates/facet-graph',
+    '../facet-collection', 'perfect-scrollbar',	'jquery-ui'
   ],
-  function(Marionette, d3, facetItemCheckboxTemplate, facetSliderTemplate, facetGraphTemplate, IndividualFacetCollection) {
+  function(Marionette, d3, facetItemCheckboxTemplate, facetSliderTemplate,
+    facetGraphTemplate, IndividualFacetCollection) {
 
     var BaseItem = Marionette.ItemView.extend({
 
@@ -31,34 +33,42 @@ define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
         this.events["click .facet-caret"] = "toggleChildren";
         this.events["click .show-more"] = "showExtraItems"
 
-        this.listenTo(this.collection, "re-rendering", this.onAdd)
+        this.on("itemview:selected", this.highlightParentFacet)
+        this.on("itemview:unselected", this.unHighlightParentFacet)
+      },
+
+      highlightParentFacet : function(){
+        this.$(".facet-caret").eq(0).addClass("active-style")
+      },
+
+      unHighlightParentFacet : function(){
+        this.$(".facet-caret").eq(0).removeClass("active-style")
+
       },
 
       defaultNumFacets: Marionette.getOption(this, "defaultNumFacets") || 5,
 
-      onAdd : function(){
+      onCompositeCollectionResetAdd : function(){
 
-        //show initial number of facets
-        var visible = 0;
-        var $childFacets = this.$(".child-facets .item-view")
-        if ($childFacets.length) {
+        if(this.collection.models.length){
+          //show initial number of facets
+          var visible = 0;
+          var $childFacets = this.$(".child-facets .item-view")
+          if ($childFacets.length) {
 
-          while (visible < this.defaultNumFacets) {
+            while (visible < this.defaultNumFacets) {
 
-            $childFacets.eq(visible).removeClass("hide");
-            visible++
+              $childFacets.eq(visible).removeClass("hide");
+              visible++
+            }
+          }
+
+          //unhide "show more" button if necessary
+          if (this.collection.moreFacets && !($childFacets.length < this.defaultNumFacets)) {
+            //this confirms there are more facets to be shown, so present it as an option
+            this.$(".child-facets + .show-more").removeClass("hide")
           }
         }
-
-        var $childFacets = this.$(".child-facets .item-view");
-        console.log(this, this.collection.moreFacets, $childFacets.length, this.defaultNumFacets )
-
-        //unhide "show more" button if necessary
-        if (this.collection.moreFacets && !($childFacets.length < this.defaultNumFacets)) {
-          //this confirms there are more facets to be shown, so present it as an option
-          this.$(".child-facets + .show-more").removeClass("hide")
-        }
-
       },
 
       //adding the hier flag for hierarchical view
@@ -99,7 +109,6 @@ define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
 
       showExtraItems: function(e) {
         e.stopPropagation();
-        var $target = $(e.target);
 
         this.$(".item-view.hide").slice(0, this.defaultNumFacets ).removeClass("hide");
 
@@ -127,6 +136,12 @@ define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
         this.model.set({
           "selected": !this.model.get("selected")
         })
+        if(this.model.get("selected")){
+          this.trigger("selected");
+        }
+        else {
+          this.trigger("unselected")
+        }
       },
 
       events: {
@@ -137,7 +152,6 @@ define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
 
 
     var ZoomableGraphView = BaseItem.extend({
-
 
         initialize: function(options) {
 
@@ -331,9 +345,11 @@ define(['marionette', 'd3', 'hbs!../templates/facet-item-checkbox',
             var ui1 = ui.values[0],
               ui2 = ui.values[1];
             if (!(ui1 === min && ui2 === max)) {
-              that.$(".apply").removeClass("no-show")
+              that.$(".apply").removeClass("no-show");
+              that.trigger("facet:active")
             } else {
-              that.$(".apply").addClass("no-show")
+              that.$(".apply").addClass("no-show");
+              that.trigger("facet:inactive");
             }
             that.graphChange(ui1, ui2)
           },

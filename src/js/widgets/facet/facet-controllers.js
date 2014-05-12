@@ -62,7 +62,6 @@ define(['backbone', 'marionette', 'js/components/api_query', 'js/components/api_
     },
 
     dispatchFollowUpRequest: function () {
-      console.log("dispatching follow up request")
 
       this.dispatchBasicRequest();
     },
@@ -256,18 +255,19 @@ define(['backbone', 'marionette', 'js/components/api_query', 'js/components/api_
         view.itemView = FacetItemViews.CheckboxOneLevelView;
       }
 
+
       if (coll.needsReset) {
         console.log("resetting the collection")
         coll.reset(facetsCol);
         coll.needsReset = false;
+        view.triggerMethod("composite:collection:reset:add")
+
 
       }
       else {
         coll.add(facetsCol);
-        //not sure if necessary
-        coll.trigger("re-rendering")
+        view.triggerMethod("composite:collection:reset:add")
       }
-
     }
 
 
@@ -320,7 +320,7 @@ define(['backbone', 'marionette', 'js/components/api_query', 'js/components/api_
 
       if (!this.childCollections[view.cid]) {
         this.childCollections[view.cid] = {collection: view.collection,
-          paginator : new Paginator({rows: 5,
+          paginator : new Paginator({rows: 15,
             startName : "facet.offset",
             rowsName : "facet.limit"})
         }

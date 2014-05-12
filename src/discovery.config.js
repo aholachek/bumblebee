@@ -57,8 +57,8 @@ require.config({
     'bootstrap': 'libs/bootstrap/bootstrap',
     'jquery-ui' : 'libs/jqueryui/jquery-ui',
     'd3':'libs/d3/d3',
-    'hoverIntent': 'libs/jquery-hoverIntent/jquery.hoverIntent'
-
+    'hoverIntent': 'libs/jquery-hoverIntent/jquery.hoverIntent',
+    'perfect-scrollbar': 'libs/perfect-scrollbar/perfect-scrollbar-0.4.10.min.js'
   },
 
   hbs : {
