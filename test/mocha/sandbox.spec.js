@@ -14,10 +14,12 @@ var tests = [
   //tbase + '/components/query_mediator.spec.js'
   //tbase + '/services/pubsub.spec.js',
   // tbase + '/widgets/results_render_widget.spec.js',
-    tbase + '/widgets/facet_widget.spec.js',
-  tbase + '/widgets/facet_container_views.spec.js',
-    tbase + '/widgets/facet_item_views.spec.js',
-    tbase + '/widgets/facet_controllers.spec.js',
+//    tbase + '/widgets/facet_widget.spec.js',
+//  tbase + '/widgets/facet_container_views.spec.js',
+//    tbase + '/widgets/facet_item_views.spec.js',
+//    tbase + '/widgets/facet_controllers.spec.js',
+    tbase + '/widgets/tabs_widget.spec.js'
+
 
 
 
