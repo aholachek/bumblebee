@@ -36,7 +36,9 @@ var tests = [
   tbase + '/widgets/facet_container_views.spec.js',
   tbase + '/widgets/facet_item_views.spec.js',
   tbase + '/widgets/facet_controllers.spec.js',
-  tbase + '/widgets/abstract_widget.spec.js'
+  tbase + '/widgets/abstract_widget.spec.js',
+  tbase + '/widgets/contents_manager_widget.spec.js',
+
 
 
 ];

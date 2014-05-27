@@ -16,6 +16,13 @@ define(['backbone', 'marionette', 'js/widgets/base/base_widget', 'hbs!./template
                                }
                           }
     }
+
+    NOTE TO ROMAN: These parameters are expecting a widget that has already been initialized.
+    the other way to do it would be to pass in the widget constructors instead, and to either
+    1) completely destroy and re-create the widget when its view is shown/hidden
+    2) only destroy the widget's view, keeping the widget intact,
+       but somehow reconstruct the view when it needs to be shown again
+
     */
 
     var LayoutTitleView = Marionette.ItemView.extend({
@@ -137,8 +144,14 @@ define(['backbone', 'marionette', 'js/widgets/base/base_widget', 'hbs!./template
       var v = arguments[0];
       var title = v.model.get("title");
       if(title !== this.currentViewTitle){
-        this.content.show(this.widgets[title].getView())
+
+
+ /*NOTE TO ROMAN: the more traditional layout widget use for the "show" command would be to do:
+ *     this.content.show(new this.widgets[title]() */
+        this.content.show(this.widgets[title].getView(),{preventClose : true})
         this.widgets[title].getView().delegateEvents()
+
+
         this.currentViewTitle = title;
       }
 
@@ -162,9 +175,13 @@ define(['backbone', 'marionette', 'js/widgets/base/base_widget', 'hbs!./template
     },
 
     onClose : function(){
-      console.log("CLOSING")
       _.each(this.widgets, function(w){
-        w.close();
+        if (w.close){
+          w.close();
+        }
+        else {
+          w.remove();
+        }
       }, this)
 
     }
