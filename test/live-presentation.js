@@ -1,8 +1,14 @@
 require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_mediator', 'js/services/api',
   'jquery', 'underscore',
   'js/widgets/search_bar/search_bar_widget', 'js/widgets/results/widget',
-  'js/widgets/facet/factory', 'js/widgets/query_info/query_info_widget'
-], function(BeeHive, PubSub, QueryMediator, Api, $, _, SearchBar, ResultsRender, FacetFactory, QueryInfoWidget) {
+  'js/widgets/facet/factory', 'js/widgets/query_info/query_info_widget',
+  'js/widgets/abstract/widget', 'js/widgets/contents_manager/widget', 'js/widgets/references/widget'
+], function(BeeHive, PubSub, QueryMediator, Api, $, _, SearchBar, ResultsRender,
+  FacetFactory, QueryInfoWidget, AbstractWidget, LayoutWidget, ReferencesWidget) {
+
+  var abstract = new AbstractWidget();
+  var references = new ReferencesWidget();
+  var l = new LayoutWidget({widgetTitleMapping : {'abstract' : {widget: abstract, default : true}, 'references' : {widget : references}}})
 
 
   var beehive = new BeeHive();
@@ -104,36 +110,41 @@ require(['js/components/beehive', 'js/services/pubsub', 'js/components/query_med
     openByDefault: true,
   });
 
-  queryInfo.activate(beehive.getHardenedInstance())
+  abstract.activate(beehive.getHardenedInstance())
+  references.activate(beehive.getHardenedInstance())
+
+//  queryInfo.activate(beehive.getHardenedInstance())
   s.activate(beehive.getHardenedInstance())
-  r.activate(beehive.getHardenedInstance())
-  c.activate(beehive.getHardenedInstance())
-  a.activate(beehive.getHardenedInstance())
-  y.activate(beehive.getHardenedInstance())
-  database.activate(beehive.getHardenedInstance())
-  keywords.activate(beehive.getHardenedInstance())
-  pub.activate(beehive.getHardenedInstance())
-  bibgroup.activate(beehive.getHardenedInstance())
-  data.activate(beehive.getHardenedInstance())
-  vizier.activate(beehive.getHardenedInstance())
-  grants.activate(beehive.getHardenedInstance())
-  refereed.activate(beehive.getHardenedInstance())
+//  r.activate(beehive.getHardenedInstance())
+//  c.activate(beehive.getHardenedInstance())
+//  a.activate(beehive.getHardenedInstance())
+//  y.activate(beehive.getHardenedInstance())
+//  database.activate(beehive.getHardenedInstance())
+//  keywords.activate(beehive.getHardenedInstance())
+//  pub.activate(beehive.getHardenedInstance())
+//  bibgroup.activate(beehive.getHardenedInstance())
+//  data.activate(beehive.getHardenedInstance())
+//  vizier.activate(beehive.getHardenedInstance())
+//  grants.activate(beehive.getHardenedInstance())
+//  refereed.activate(beehive.getHardenedInstance())
 
 
 
   $("#top").append(s.getView().render().el)
 
-  $("#middle").append(r.getView().render().el)
+//  $("#middle").append(r.getView().render().el)
 
-  $("#left").append(a.getView().render().el)
-  $("#left").append(database.getView().render().el)
-  $("#left").append(refereed.getView().render().el)
-  $("#left").append(keywords.getView().render().el)
-  $("#left").append(pub.getView().render().el)
-  $("#left").append(bibgroup.getView().render().el)
-  $("#left").append(data.getView().render().el)
-  $("#left").append(vizier.getView().render().el)
-  $("#left").append(grants.getView().render().el)
+  $("#middle").append(l.render().el)
+
+//  $("#left").append(a.getView().render().el)
+//  $("#left").append(database.getView().render().el)
+//  $("#left").append(refereed.getView().render().el)
+//  $("#left").append(keywords.getView().render().el)
+//  $("#left").append(pub.getView().render().el)
+//  $("#left").append(bibgroup.getView().render().el)
+//  $("#left").append(data.getView().render().el)
+//  $("#left").append(vizier.getView().render().el)
+//  $("#left").append(grants.getView().render().el)
 
 
 

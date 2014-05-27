@@ -5943,3 +5943,37 @@ button.close {
   background-color: #1d6bb5 !important;
   color: #ffffff !important;
 }
+.contents-nav {
+  width: 80%;
+  margin: auto;
+  color: black;
+  cursor: pointer;
+  list-style: none;
+}
+.contents-nav:hover {
+  background-color: #fffae6;
+}
+.contents-nav-active:hover {
+  background-color: #ffe780;
+}
+.contents-nav-active {
+  position: relative;
+  background: #88b7d5;
+  height: 40px;
+  padding: 10px 5px 10px 5px;
+  background-color: #ffe780;
+}
+.contents-nav-active::after {
+  left: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(136, 183, 213, 0);
+  border-left-color: #ffe780;
+  border-width: 20px;
+  margin-top: -20px;
+}

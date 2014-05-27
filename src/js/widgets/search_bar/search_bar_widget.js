@@ -128,6 +128,10 @@ define(['marionette', 'js/components/api_query', 'js/widgets/base/base_widget',
         })
 
         this.pubsub.publish(this.pubsub.NEW_QUERY, newQuery);
+      },
+
+      processResponse : function(){
+
       }
     })
 

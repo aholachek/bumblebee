@@ -187,3 +187,46 @@
   background-color: @brand-primary !important;
   color: @body-bg  !important
 }
+
+.contents-nav {
+  width: 80%;
+  margin:auto;
+  color:black;
+  cursor: pointer;
+  list-style: none;
+}
+
+.contents-nav:hover {
+  background-color: lighten(@brand-warning, 30%)
+
+}
+
+.contents-nav-active:hover {
+  background-color: lighten(@brand-warning, 10%)
+}
+
+.contents-nav-active {
+  position: relative;
+  background: #88b7d5;
+  height:40px;
+  padding: 10px 5px 10px 5px;
+  background-color: lighten(@brand-warning, 10%)
+
+}
+
+.contents-nav-active::after {
+  left: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(136, 183, 213, 0);
+  border-left-color: lighten(@brand-warning, 10%);
+  border-width: 20px;
+  margin-top: -20px;
+
+
+}
