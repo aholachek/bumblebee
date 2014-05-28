@@ -5841,41 +5841,38 @@ button.close {
   margin-top: -3px;
   margin-bottom: 2px;
 }
-.facet-meta {
-  height: 25px;
-}
-.facet-widget label {
+.s-facet-widget label {
   font-weight: normal;
 }
-.child-facets {
+.s-child-facets {
   padding-left: 20px;
 }
-.facet-meta .dropdown {
+.s-facet-meta .dropdown {
   position: relative;
   top: -33px;
   left: 140px;
 }
-.facet-meta .dropdown-menu {
+.s-facet-meta .dropdown-menu {
   min-width: 120px !important;
 }
-.facet-meta .dropdown-menu p {
+.s-facet-meta .dropdown-menu p {
   padding: 3px 5px 0px 5px;
 }
-.facet-meta .dropdown-menu label {
+.s-facet-meta .dropdown-menu label {
   padding: 0px 10px;
   margin: 0px;
 }
-.facet-widget {
+.s-facet-widget {
   max-width: 400px;
   max-height: 500px;
   margin: 10px;
 }
-.facet-body {
+.s-facet-body {
   overflow-y: auto;
   padding-left: 10px;
   max-height: 340px;
 }
-.facet-body .selected {
+.s-facet-body .selected {
   color: #1d6bb5;
 }
 .logic-container label {

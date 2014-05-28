@@ -10,7 +10,6 @@ define(['marionette', 'd3', 'jquery-ui', 'hbs!./templates/slider'], function(Mar
             "slide .slider": "toggleApply",
             "click .apply": "submitFacet"
 
-
         },
 
 

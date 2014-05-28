@@ -187,7 +187,7 @@ define(['backbone',
         }
         else if (ev.substring(ev.length-20) == 'itemview:treeClicked') { // hierarchical view
           var view = arguments[arguments.length-1];
-          this.handleTreeExpansion(view); // see if we need to fetch deeper data
+//          this.handleTreeExpansion(view); // see if we need to fetch deeper data
           this.handleConditionApplied(view.model);
         }
         else if (ev == 'containerLogicSelected') {

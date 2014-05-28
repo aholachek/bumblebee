@@ -16,7 +16,8 @@
     "bootstrap": "~3.1.1",
     "jqueryui": "~1.10.4",
     "d3": "~3.4.6",
-    "jquery-hoverIntent": "*"
+    "jquery-hoverIntent": "*",
+    "perfect-scrollbar": "~0.4.10"
   },
   "devDependencies": {
     "chai": "~1.8.0",
@@ -26,6 +27,6 @@
     "sinon": "http://sinonjs.org/releases/sinon-1.9.0.js"
   },
   "resolutions": {
-    "jquery": "~2.0.3"
+    "jquery": "^1.8.0 || ^2.0.0"
   }
 }
