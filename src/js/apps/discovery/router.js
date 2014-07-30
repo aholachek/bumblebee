@@ -58,7 +58,10 @@ define([
       },
 
       search: function (query) {
-        var serializedQuery = $.param(query);
+        if (query){
+          var serializedQuery = $.param(query);
+
+        }
 
         if (serializedQuery) {
           this.history.addEntry({"resultsPage": serializedQuery})
