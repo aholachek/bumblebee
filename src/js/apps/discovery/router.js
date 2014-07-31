@@ -85,6 +85,7 @@ define([
 
         if (bibcode){
           //it's the default abstract view
+          console.log("subView!", subView)
           this.pageControllers.abstractPage.showPage(bibcode, subView, fromWithinPage);
           this.history.addEntry({"abstractPage": {bibcode: bibcode, subView : subView}})
         }

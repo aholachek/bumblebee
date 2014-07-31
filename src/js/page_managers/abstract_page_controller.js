@@ -14,28 +14,32 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
   function(Marionette, threeColumnTemplate, PaginatedBaseWidget,
     abstractTitleTemplate, ApiQuery, abstractNavTemplate, LoadingWidget){
 
+    var currentBibcode;
+
 
     var AbstractTitleView = Backbone.View.extend({
 
+
       template : abstractTitleTemplate,
 
-      render : function(bibcode, data, collection){
+      render : function(){
+
         var prevBib, nextBib, index;
 
-        //only send number to template if it is in a set of results
-        if (collection){
-          index = collection.indexOf(data);
-          prevBib = collection.filter(function(model, i){return i == index-1})[0]
-          nextBib = collection.filter(function(model, i){return i == index+1})[0]
+        var model = this.collection.findWhere({bibcode : currentBibcode});
 
+        //only send number to template if it is in a set of results
+        if (this.collection.length > 1){
+          index = this.collection.indexOf(model);
+          prevBib = this.collection.filter(function(model, i){return i == index-1})[0]
+          nextBib = this.collection.filter(function(model, i){return i == index+1})[0]
         }
 
         prevBib = prevBib? prevBib.get("bibcode") : undefined;
         nextBib = nextBib? nextBib.get("bibcode") : undefined;
 
-        console.log(index, "index")
 
-        this.$el.html(this.template({index : index+1, description: "Abstract for:" , title: data.get("title"), prev: prevBib, next : nextBib}))
+        this.$el.html(this.template({index : index+1, description: this.collection.subPage , title: model.get("title"), prev: prevBib, next : nextBib}))
 
         return this
 
@@ -146,12 +150,15 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
       showAbstractSubView: function(viewName) {
 
+        var model;
+
         if (!viewName){
           console.warn("viewname undefined")
           return
         }
 
         var $middleCol = $("#s-middle-col-container");
+        var $titleRow = $("#abstract-title-container");
 
         $middleCol.children().detach();
 
@@ -161,15 +168,12 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
         var widget = this.abstractSubViews[viewName]["widget"];
 
 
-
         $middleCol.append(widget.render().el);
-
-        //also amending the title
-        $(".abstract-title-info-row").text(this.abstractSubViews[viewName]["descriptor"])
 
         //also highlighting the relevant nav
 
-        $("#"+viewName).addClass("s-abstract-nav-active")
+        $("#"+viewName).addClass("s-abstract-nav-active");
+
 
       },
 
@@ -204,7 +208,7 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
       parse : function(d){
         return {title : d.title[0], bibcode: d.bibcode}
-      },
+      }
 
     });
 
@@ -233,12 +237,11 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
         options = options || {};
 
-        this.view = new AbstractTitleView();
+        this._bibcode = undefined;
 
         this.collection = new AbstractControllerCollection();
 
-        //represents the current bibcode (always only 1)
-        this._bibcode = undefined;
+        this.view = new AbstractTitleView({collection: this.collection, _bibcode : this._bibcode});
 
         if (!options.widgetDict){
           throw new error("page managers need a dictionary of widgets to render")
@@ -265,6 +268,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
         this.listenTo(this.collection, "reset", this.onCollectionReset)
 
         this.loadingWidget = new LoadingWidget();
+
+        this.view.listenTo(this.collection, "change", this.render)
 
 
         PaginatedBaseWidget.prototype.initialize.apply(this, arguments);
@@ -323,10 +328,13 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
       },
 
       renderNewBibcode: function (bibcode, data) {
+
         //first, check if we have the info in current query docs
         if (this.getMasterQuery() && this.collection.findWhere({bibcode: bibcode})) {
 
-          this.view.render(bibcode, this.collection.findWhere({bibcode: bibcode}), this.collection);
+          data = this.collection.findWhere({bibcode: bibcode});
+
+          this.view.render();
 
         }
         else if (this.getMasterQuery()){
@@ -335,14 +343,14 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
         }
         else if (data){
-          this.view.render(bibcode,  new Backbone.Model(data));
+          this.view.render();
         }
         else {
           //we dont have the bibcode
           //processResponse will re-call this function, but with the data parameter
 
           //is there a better way to avoid pagination?
-          var req = this.dispatchRequest(new ApiQuery({'q': 'bibcode:' + bibcode, '__show': this._bibcode}));
+          var req = this.dispatchRequest(new ApiQuery({'q': 'bibcode:' + this._bibcode, '__show': this._bibcode}));
         }
       },
 
@@ -354,11 +362,12 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
         //it's an individual bibcode, just render it
         if (apiResponse.has('responseHeader.params.__show')) {
           //make the dict of associated data
-          var data = r.response.docs[0]
+          var data = r.response.docs[0];
           if (!data){
             throw new Error("did not recieve bibcode data")
           }
-          var data = {title: data.title, bibcode : data.bibcode}
+          this.collection.add({title: data.title, bibcode : data.bibcode})
+          var data =
           this.renderNewBibcode(this._bibcode, data);
         }
         else {
@@ -386,14 +395,19 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
       showPage : function(bib, subPage, fromWithinPage){
 
+        if (subPage !==this.subPage) {
+          this.collection.subPage = this.abstractSubViews[subPage].descriptor;
+        }
+
         if (fromWithinPage){
           //just need to switch out the subPage
-          this.showAbstractSubView(subPage)
-
+          this.view.render();
+          this.showAbstractSubView(subPage);
         }
 
         else {
           this._bibcode = bib;
+          currentBibcode = bib;
 
           this.renderNewBibcode(bib);
 
@@ -406,8 +420,14 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
           //this calls "displayNav" upon individual widget completion
           this.loadWidgetData();
 
-          this.showAbstractSubView("abstract");
+          if (!subPage){
+            this.showAbstractSubView("abstract")
 
+          }
+          else {
+            this.showAbstractSubView(subPage)
+
+          }
           this.insertLoadingView()
 
         }
