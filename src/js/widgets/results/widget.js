@@ -50,11 +50,12 @@ define([
       defaultQueryArguments: {
         hl     : "true",
         "hl.fl": "title,abstract",
-        fl     : 'title,abstract,bibcode,author,keyword,id,citation_count,pub,aff,email,volume,year,links_data,ids_data,[citations]'
+        fl     : 'title,abstract,bibcode,author,keyword,id,citation_count,pub,aff,volume,year'
       },
 
       parseResponse: function (apiResponse, orderNum) {
         var raw = apiResponse.toJSON();
+
         var highlights = raw.highlighting;
         orderNum = orderNum || 1;
 
@@ -105,6 +106,9 @@ define([
           return d;
 
         });
+        //getting links data from LinkGenerator Mixin
+        var docs = this.parseLinksData(docs);
+
         return docs;
       }
     });

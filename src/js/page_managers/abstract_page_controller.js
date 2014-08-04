@@ -10,12 +10,13 @@
 
 define(["marionette", "hbs!./templates/abstract-page-layout",
     'js/widgets/base/paginated_base_widget', 'hbs!./templates/abstract-title',
-    'js/components/api_query', 'hbs!./templates/abstract-nav', 'js/widgets/loading/widget'],
+    'js/components/api_query', 'hbs!./templates/abstract-nav',
+    'js/widgets/loading/widget'],
   function(Marionette, threeColumnTemplate, PaginatedBaseWidget,
     abstractTitleTemplate, ApiQuery, abstractNavTemplate, LoadingWidget){
 
+    //so view can keep track of what to render
     var currentBibcode;
-
 
     var AbstractTitleView = Backbone.View.extend({
 
@@ -73,6 +74,10 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
       },
 
+
+      /* all widgets that need to be told which bibcode to render
+      should be activated here */
+
       loadWidgetData : function(){
         var that = this;
 
@@ -99,6 +104,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
           }
 
         }, this)
+
+        this.widgetDict.resources.loadBibcodeData(this._bibcode)
 
       },
 
@@ -167,7 +174,6 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
         var widget = this.abstractSubViews[viewName]["widget"];
 
-
         $middleCol.append(widget.render().el);
 
         //also highlighting the relevant nav
@@ -178,7 +184,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
       },
 
       displayRightColumn : function(){
-        var $rightCol = $("#s-right-col-container")
+        var $rightCol = $("#s-right-col-container");
+        $rightCol.append(this.widgetDict.resources.render().el)
 
       },
 
@@ -330,7 +337,7 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
       renderNewBibcode: function (bibcode, data) {
 
         //first, check if we have the info in current query docs
-        if (this.getMasterQuery() && this.collection.findWhere({bibcode: bibcode})) {
+        if (this.collection.findWhere({bibcode: bibcode})) {
 
           data = this.collection.findWhere({bibcode: bibcode});
 
@@ -407,6 +414,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
         else {
           this._bibcode = bib;
+
+          //for the view so it can pick the right model
           currentBibcode = bib;
 
           this.renderNewBibcode(bib);
