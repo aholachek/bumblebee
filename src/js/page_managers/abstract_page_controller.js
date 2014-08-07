@@ -344,11 +344,7 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
           this.view.render();
 
         }
-        else if (this.getMasterQuery()){
-          //the information hasn't arrived yet, so listen to the collection reset event
-          this.listenToOnce(this.collection.reset, this.renderNewBibcode(bibcode))
 
-        }
         else if (data){
           this.view.render();
         }
