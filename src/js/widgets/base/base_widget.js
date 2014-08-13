@@ -41,8 +41,6 @@ define(['backbone', 'marionette',
    *
    */
 
-    //adding "isRendered" flag to Marionette ItemView
-
 
   var BaseWidget = Marionette.Controller.extend({
 
@@ -63,6 +61,11 @@ define(['backbone', 'marionette',
       if (options.view) {
         this.view = options.view;
         this.collection = options.view.collection;
+      }
+
+      if (this.view){
+        this.listenTo(this.view, "render", function(){console.log( this.view.$el.find("*").length)})
+
       }
     },
 

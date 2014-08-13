@@ -185,7 +185,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
 
       displayRightColumn : function(){
         var $rightCol = $("#s-right-col-container");
-        $rightCol.append(this.widgetDict.resources.render().el)
+        $rightCol.append(this.widgetDict.resources.render().el);
+        $rightCol.append(this.widgetDict.socialMedia.render().el)
 
       },
 
@@ -268,7 +269,8 @@ define(["marionette", "hbs!./templates/abstract-page-layout",
           "citations": {widget: this.widgetDict.citations, title: "Citations", descriptor: "Papers that cite:", showNumFound : true},
           "coreads" : {widget: this.widgetDict.coreads, title: "Co-Reads", descriptor: "Other papers read by those who read:"},
           "tableofcontents" : {widget: this.widgetDict.tableOfContents, title: "Table of Contents", descriptor: "Table of Contents for:", showNumFound : true},
-          "similar": {widget : this.widgetDict.similar, title : "Similar Papers", descriptor : "Papers with similar characteristics to:"}
+          "similar": {widget : this.widgetDict.similar, title : "Similar Papers", descriptor : "Papers with similar characteristics to:"},
+          "socialmedia": {widget : this.widgetDict.socialMedia}
         };
 
         this.listenTo(this.view, "all", this.onAllInternalEvents)

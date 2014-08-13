@@ -13,20 +13,33 @@ define(['underscore', 'jquery', 'backbone', 'marionette',
 
     },
 
-    render : function(){
+    render : function(bibcode){
+
+      var data = { FacebookLink: this.makeFacebookLink(bibcode),
+                   MendeleyLink : this.makeMendeleyLink(bibcode)}
+
+      this.$el.html(this.template(data))
 
     },
 
-    makeFacebookLink : function(){
+    makeFacebookLink : function(bibcode){
+      debugger;
 
       return 'http://www.facebook.com/share.php?u=' + encodeURIComponent(document.location.origin+"/abs/" +bibcode);
 
     },
 
-    makeMendeleyLink : function(){
+    makeMendeleyLink : function(bibcode){
       return 'http://www.mendeley.com/import/?url=' + encodeURIComponent(document.location.origin+"/abs/" +bibcode);
 
-    }
+    },
+
+//    makeTwitterLink : function(){
+//
+//    },
+//    makeScienceWiseLink : function(){
+//
+//    },
 
 //    makeTwitterLink : function(){
 //      """Creates an url for twitter"""
@@ -69,6 +82,8 @@ define(['underscore', 'jquery', 'backbone', 'marionette',
 
     initialize : function(options){
 
+      this.view = new SocialButtonView()
+
     },
 
     loadBibcodeData : function(bibcode){
@@ -78,6 +93,8 @@ define(['underscore', 'jquery', 'backbone', 'marionette',
     }
   })
 
+
+    return SocialButtonWidget
 
 
 

@@ -339,7 +339,10 @@ define(["config", 'module'], function(config, module) {
       var resources = app.getWidget('Resources');
       resources.activate(beehive.getHardenedInstance());
 
-      console.log("b", beehive, beehive.getHardenedInstance, beehive.getHardenedInstance())
+
+      var socialMedia = app.getWidget('SocialMedia');
+      socialMedia.activate(beehive.getHardenedInstance());
+
 
       var pageControllers = {};
       var bumblebeeHistory = app.getObject("HistoryManager");
@@ -356,7 +359,8 @@ define(["config", 'module'], function(config, module) {
             tableOfContents : tableOfContents,
             similar : similar,
             searchBar : resultsWidgetDict.searchBar,
-            resources : resources
+            resources : resources,
+            socialMedia : socialMedia
           },
      history : bumblebeeHistory});
 
