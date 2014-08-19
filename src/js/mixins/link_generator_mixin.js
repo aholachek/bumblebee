@@ -125,12 +125,13 @@ var linkGenerator = {
 
          _.each(link_types, function(l){
 
-           if (l.type === 'electr' && openAccess){
+           //limit to only one in links list, even though there may be multiple articles
+           if (l.type === 'electr' && openAccess && !_.findWhere(links.text, {title: "Publisher article"})){
 
              links.text.push({openAccess : true, letter: "E",title: "Publisher article", link : this.adsUrlRedirect(l.type, bib)})
 
            }
-           else if (l.type === 'electr' && !openAccess){
+           else if (l.type === 'electr' && !openAccess  && !_.findWhere(links.text, {title: "Publisher article"})){
              links.text.push({letter: "E", title: "Publisher article", link : this.adsUrlRedirect(l.type, bib)})
 
            }
