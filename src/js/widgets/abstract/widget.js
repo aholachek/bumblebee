@@ -32,10 +32,12 @@ define(['marionette', 'backbone', 'jquery', 'underscore', 'cache',
         // joining author and aff
         authorAff = _.zip(doc.author, doc.aff);
 
+        title = $.isArray(doc.title)? doc.title[0] : doc.title;
+
         return {
           hasAffiliation: hasAffiliation,
           abstract: doc.abstract,
-          title: doc.title[0],
+          title: title,
           authorAff: authorAff,
           pub: doc.pub,
           pubdate: doc.pubdate,
