@@ -1198,6 +1198,12 @@ define([
 
     initialize: function (options) {
 
+
+      if (!options.endpoint){
+        
+        throw new Error("widget was not configured with an endpoint");
+      }
+
       this.model = new NetworkModel();
 
       this.view = new ContainerView({
@@ -1242,11 +1248,12 @@ define([
     onShow : function(){
 
         var request =  new ApiRequest({
-          target: 'author-network',
+
+          target: Marionette.getOption(this, "endpoint"),
           query: this.getCurrentQuery()
         });
 
-     this.pubsub.publish(this.pubsub.DELIVERING_REQUEST, request)
+     this.pubsub.publish(this.pubsub.DELIVERING_REQUEST, request);
 
     },
 
