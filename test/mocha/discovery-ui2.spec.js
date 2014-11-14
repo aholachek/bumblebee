@@ -32,6 +32,7 @@ var tests = [
     tbase + '/widgets/year_graph_facet_widget.spec.js',
 
     tbase + '/widgets/network_widget.spec.js'
+    tbase + '/widgets/dropdown_widget.spec.js'
 
 
 ];
