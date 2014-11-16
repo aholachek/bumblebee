@@ -23,7 +23,6 @@ define([
 
         this.set('index-page', function() {
           app.getObject('MasterPageManager').show('LandingPage')});
-
         this.set('results-page', function() { app.getObject('MasterPageManager').show('SearchPage'), ['Results', 'QueryInfo','AuthorFacet', 'DatabaseFacet', 'RefereedFacet', 'KeywordFacet','BibstemFacet', 'BibgroupFacet', 'DataFacet', 'VizierFacet', 'GrantsFacet', 'GraphTabs','QueryDebugInfo']});
         this.set('author-network', function() { app.getObject('MasterPageManager').show('SearchPage', ['AuthorNetwork','QueryInfo','AuthorFacet', 'DatabaseFacet', 'RefereedFacet', 'KeywordFacet','BibstemFacet', 'BibgroupFacet', 'DataFacet', 'VizierFacet', 'GrantsFacet', 'GraphTabs','QueryDebugInfo'])});
         this.set('abstract-page', function() {
