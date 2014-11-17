@@ -10,7 +10,8 @@ define([
   //config
 
   var links = [
-    {href : '/results/author-network' , description : 'Author Network' , navEvent: 'showAuthorNetwork'}
+
+    {href : '/results/author-network' , description : 'Author Network' , navEvent: 'ShowAuthorNetwork'}
 
   ];
 
