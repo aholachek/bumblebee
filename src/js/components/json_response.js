@@ -157,7 +157,7 @@ define(['underscore', 'backbone', 'js/components/api_query'], function(_, Backbo
           if (justCheck) {
             return false;
           }
-          throw new Error("Can't find: " + key + (found.length > 0 ? " (worked up to: " + found.join('.') + ")" : ""));
+//          throw new Error("Can't find: " + key + (found.length > 0 ? " (worked up to: " + found.join('.') + ")" : ""));
         }
       }
 

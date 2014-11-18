@@ -16,7 +16,8 @@ define(['js/components/json_response', 'js/components/solr_params',
 
     initialize: function() {
       if (!this.has('responseHeader.params')) {
-        throw new Error("SOLR data error - missing: responseHeader.params");
+        //could be from api
+//        throw new Error("SOLR data error - missing: responseHeader.params");
       }
       if (_.isString(this._url)) { //TODO: this seems ugly, relying on the parent for values
         var p = new SolrParams();

@@ -23,7 +23,9 @@ define([
 
         this.set('index-page', function() {app.getObject('MasterPageManager').show('LandingPage')});
         this.set('results-page', function() { app.getObject('MasterPageManager').show('SearchPage', ['Results', 'QueryInfo','AuthorFacet', 'DatabaseFacet', 'RefereedFacet', 'KeywordFacet','BibstemFacet', 'BibgroupFacet', 'DataFacet', 'VizierFacet', 'GrantsFacet', 'GraphTabs','QueryDebugInfo', 'VisualizationDropdown'])});
-        this.set('ShowAuthorNetwork', function() { app.getObject('MasterPageManager').show('SearchPage', ['AuthorNetwork','QueryInfo','AuthorFacet', 'DatabaseFacet', 'RefereedFacet', 'KeywordFacet','BibstemFacet', 'BibgroupFacet', 'DataFacet', 'VizierFacet', 'GrantsFacet', 'GraphTabs','QueryDebugInfo', 'VisualizationDropdown'])});
+        this.set('ShowAuthorNetwork', function() { app.getObject('MasterPageManager').show('SearchPage', ['AuthorNetwork','QueryInfo','AuthorFacet', 'DatabaseFacet', 'RefereedFacet', 'KeywordFacet','BibstemFacet', 'BibgroupFacet', 'DataFacet', 'VizierFacet', 'GrantsFacet', 'GraphTabs','QueryDebugInfo', 'VisualizationDropdown']);
+          app.getWidget("DetailsPage").view.makeCenterFullWidth();
+        });
         this.set('abstract-page', function() {
           app.getObject('MasterPageManager').show('DetailsPage', ['TOCWidget', 'ShowAbstract', 'SearchWidget', 'ShowResources']);
         });

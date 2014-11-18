@@ -118,8 +118,8 @@ define([
     defaults: function () {
       return {
         highlightColor: "orange",
-        linkDistance: 35,
-        charge: -150,
+        linkDistance: 30,
+        charge: -200,
         width: 100,
         height: 100
       }
@@ -134,7 +134,7 @@ define([
         //the summary graph data
         summaryData: {},
         //the full graph data
-        fullData: {},
+        fullGraph: {},
         scales: {},
         nodes: [],
           links: [],
@@ -226,9 +226,22 @@ define([
 
    },
 
+   events : {
+     "click .filter-search" : "signalSearchFiltered"
+   },
+
    modelEvents : {
 
-     "change:fullData" : "render"
+     "change:fullGraph" : "render"
+
+   },
+
+   signalSearchFiltered : function(){
+
+     var names = _.pluck(this.chosenNamesCollection.toJSON(), "name");
+
+     this.trigger("filterSearch", names);
+
 
    },
 
@@ -250,7 +263,7 @@ define([
 
      }
     //not enough data to make a graph
-     else if ( _.isEmpty(this.model.get("fullData")) || !this.model.get("fullData").nodes.length ) {
+     else if ( _.isEmpty(this.model.get("fullGraph")) || !this.model.get("fullGraph").nodes.length ) {
 
        this.$el.empty().append(notEnoughDataTemplate())
 
@@ -258,11 +271,11 @@ define([
 
      //enough data just for a basic network graph
      
-     else if (this.model.get("fullData").nodes.length > 1 ){
+     else if (this.model.get("fullGraph").nodes.length > 1 ){
 
-       this.model.set("nodes", this.model.get("fullData").nodes);
+       this.model.set("nodes", this.model.get("fullGraph").nodes);
 
-       this.model.set("links", this.model.get("fullData").links);
+       this.model.set("links", this.model.get("fullGraph").links);
 
        this.graphView = new DetailNetworkView({model : this.model})
 
@@ -332,36 +345,36 @@ define([
 
     highlightNode: function (e) {
 
-      var $kids = $(e.currentTarget).children();
+      var kids = Array.prototype.slice.apply(e.currentTarget.childNodes);
 
-      var $circle = $kids.eq(0);
+      var circle = d3.select(kids[0]);
 
-      var $textNodes = [$kids.eq(1), $kids.eq(2)];
+      var textNodes = d3.selectAll(kids.slice(1));
 
-      $circle.addClass("s-hover-circle");
+      circle.classed("s-hover-circle", true);
 
-      $textNodes.addClass("s-hover-text");
+      textNodes.classed("s-hover-text", true);
 
     },
 
     unhighlightNode: function (e) {
 
-      var $kids = $(e.currentTarget).children();
+      var kids = Array.prototype.slice.apply(e.currentTarget.childNodes);
 
-      var $circle = $kids.eq(0);
+      var circle = d3.select(kids[0]);
 
-      var $textNodes = [$kids.eq(1), $kids.eq(2)];
+      var textNodes = d3.selectAll(kids.slice(1));
 
-      $circle.removeClass("s-hover-circle");
+      circle.classed("s-hover-circle", false);
 
-      $textNodes.removeClass("s-hover-text");
+      textNodes.classed("s-hover-text", false);
 
     },
 
     setNodeDetail: function (e) {
       e.stopPropagation();
 
-      if ($(e.currentTarget).children().eq(0).hasClass("connector-node")) {
+      if (e.currentTarget.children[0].className.baseVal.indexOf("connector-node") !== -1) {
         return
       }
       this.model.set("currentGroup", e.currentTarget)
@@ -386,10 +399,14 @@ define([
       //remove all highlighting from group circles
       //jquery removeClass isn't working here
 
-      this.$(".target-group").each(function () {
+      var targets = d3.selectAll(".target-group");
 
-        $(this).removeClass("target-group")
-      })
+      if (targets){
+
+        targets.classed("target-group", false);
+
+      }
+
 
       if (this.detailViews.findByCustom(group + 1)){
 
@@ -404,7 +421,7 @@ define([
       else {
 
         //sticks graph data into model
-        var data = this.extractGraphData(group)
+        var data = this.extractGraphData(group);
 
         //now create a new view
         this.detailNetworkView = new DetailNetworkView({model: new DetailModel(data), chosenNamesCollection : this.chosenNamesCollection , groupNumber: group});
@@ -431,7 +448,8 @@ define([
       this.detailNetworkView.triggerMethod("show");
 
       //add highlight to node
-      $(targetGroupNode).children().eq(0).addClass("target-group")
+      //tried to do this without d3 and it worked fine in the browser but made tests fail
+      d3.select(Array.prototype.slice.apply(targetGroupNode.children)[0]).classed("target-group", true)
 
       this.ui.detailContainer
         .fadeIn()
@@ -440,7 +458,7 @@ define([
 
     extractGraphData: function (group) {
 
-      var fullGraph = this.model.get("fullData");
+      var fullGraph = this.model.get("fullGraph");
 
       var nodes = [], indexDict = {}, links = [];
 
@@ -485,7 +503,7 @@ define([
 
       scalesDict.lineScale = d3.scale.linear().domain([d3.min(linkValues), d3.max(linkValues)]).range([2, 10]);
       scalesDict.linkScale = d3.scale.linear().domain([d3.min(linkValues), d3.max(linkValues)]).range([.1, .3]);
-      scalesDict.radiusScale = d3.scale.linear().domain([d3.min(groupWeights), d3.max(groupWeights)]).range([5, 13]);
+      scalesDict.radiusScale = d3.scale.linear().domain([d3.min(groupWeights), d3.max(groupWeights)]).range([10, 16]);
 
     },
 
@@ -547,7 +565,7 @@ define([
       force
         .nodes(nodesData)
         .links(linksData)
-        .start();
+        .start()
 
       this.model.set("force", force)
 
@@ -563,7 +581,6 @@ define([
         .attr("height", height)
         .style("fill", "none")
         .style("pointer-events", "all");
-
 
 
       //improving mouseover interaction (svg doesn't use z index)
@@ -593,6 +610,8 @@ define([
         .enter()
         .append("g")
         .classed("summary-node-group", true)
+        .call(force.drag);
+
 
       node.append("circle")
         .classed({"network-node": true, "connector-node": function (d) {
@@ -658,17 +677,20 @@ define([
               })
           }
 
-        })
+        });
 
       force.on("tick", function () {
 
 
-        node.attr("x", function (d) {
-          return d.x
+        node.attr("x", function(d) {
+          var r = d3.select(this.children[0]).attr("r");
+          return d.x = Math.max(r, Math.min(width - r, d.x));
         })
-          .attr("y", function (d) {
-            return d.y
+          .attr("y", function(d) {
+            var r = d3.select(this.children[0]).attr("r");
+            return d.y = Math.max(r, Math.min(height - r, d.y));
           });
+
 
         node.attr("transform", function (d) {
 
@@ -1215,6 +1237,8 @@ define([
 
       });
 
+      this.listenTo(this.view, "filterSearch", this.broadcastFilteredQuery);
+
     },
 
     activate : function(beehive){
@@ -1262,10 +1286,30 @@ define([
 
     processResponse: function (data) {
 
-        this.model.set({fullData : data.fullGraph, summaryData : data.summaryGraph});
+        data = data.toJSON();
+
+        this.model.set({fullGraph : data["fullGraph"], summaryData : data["summaryGraph"]});
+
+    },
+
+    broadcastFilteredQuery : function(names){
+
+      names = names.join(" OR ");
+
+      var q = this.getCurrentQuery().get("q");
+
+      var newQueryVal = q + " author:(" + names + ")";
+
+      newQuery = this.getCurrentQuery().clone()
+
+      newQuery.set("q", newQueryVal);
+
+      var req = this.composeRequest(newQuery);
+        if (req) {
+          this.pubsub.publish(this.pubsub.START_SEARCH, req);
+        }
 
     }
-
 
 
   })
