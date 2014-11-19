@@ -227,7 +227,8 @@ define([
    },
 
    events : {
-     "click .filter-search" : "signalSearchFiltered"
+     "click .filter-search" : "signalSearchFiltered",
+     "click .close-widget" : "signalCloseWidget"
    },
 
    modelEvents : {
@@ -241,6 +242,13 @@ define([
      var names = _.pluck(this.chosenNamesCollection.toJSON(), "name");
 
      this.trigger("filterSearch", names);
+
+
+   },
+
+   signalCloseWidget : function(){
+
+     this.trigger("close")
 
 
    },
@@ -660,7 +668,7 @@ define([
               .text(n)
               .classed("group-author-name", true)
               .attr("y", function () {
-                return -radius / 2 + 4 * i
+                return -radius / 2 + 3 * i
               })
 
           })
@@ -673,7 +681,7 @@ define([
               .classed("group-more", true)
               .text(" + " + more + " more")
               .attr("y", function () {
-                return -radius / 2 + 4 * _.min([d.nodeName.length, 4])
+                return -radius / 2 + 3 * _.min([d.nodeName.length, 4])
               })
           }
 
@@ -1241,6 +1249,9 @@ define([
 
       this.listenTo(this.view, "filterSearch", this.broadcastFilteredQuery);
 
+      this.listenTo(this.view, "close", this.broadcastClose);
+
+
     },
 
     activate : function(beehive){
@@ -1296,30 +1307,36 @@ define([
 
     broadcastFilteredQuery : function(names){
 
+      if (!names.length){
+        return
 
+      }
 
-      names = names.length? "\""+ names.join("\" OR \"") + "\"" : "";
+      names = "\""+ names.join("\" OR \"") + "\"";
 
       var q = this.getCurrentQuery().get("q");
 
       var newQueryVal = q + " AND author:(" + names + ")";
 
-      newQuery = this.getCurrentQuery().clone()
+      newQuery = this.getCurrentQuery().clone();
 
       newQuery.set("q", newQueryVal);
 
-      var req = this.composeRequest(newQuery);
-        if (req) {
-          this.pubsub.publish(this.pubsub.START_SEARCH, req);
-        }
+      this.pubsub.publish(this.pubsub.START_SEARCH, newQuery);
+
+    },
+
+    broadcastClose : function(){
+
+      this.resetWidget();
+
+      this.pubsub.publish(this.pubsub.NAVIGATE, "results-page");
 
     }
 
 
   })
 
-
   return NetworkWidget
-
 
 })
