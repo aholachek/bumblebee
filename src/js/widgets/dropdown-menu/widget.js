@@ -151,6 +151,9 @@ define([
 
         }
 
+        //for now, just set it to false, but later listen to nav event to remove
+        model.set("selected", false);
+
 
       },
 

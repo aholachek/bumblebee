@@ -872,7 +872,9 @@ define([
 
       var name = e.currentTarget.textContent;
 
-      $(e.currentTarget).toggleClass("selected-node");
+      var d3Target =  d3.select(e.currentTarget);
+
+      d3Target.classed("selected-node", !d3Target.classed("selected-node"));
 
       this.trigger("name:toggle", name);
 
@@ -886,7 +888,7 @@ define([
 
       if (action === "add") {
         this.$(".detail-node").each(function () {
-          $(this).addClass("selected-node");
+          d3.select(this).classed("selected-node", true);
           names.push(this.textContent);
 
         });
@@ -894,7 +896,7 @@ define([
       }
       else {
         this.$(".detail-node").each(function () {
-          $(this).removeClass("selected-node");
+          d3.select(this).classed("selected-node", false);
           names.push(this.textContent);
 
         });
@@ -1294,11 +1296,13 @@ define([
 
     broadcastFilteredQuery : function(names){
 
-      names = names.join(" OR ");
+
+
+      names = names.length? "\""+ names.join("\" OR \"") + "\"" : "";
 
       var q = this.getCurrentQuery().get("q");
 
-      var newQueryVal = q + " author:(" + names + ")";
+      var newQueryVal = q + " AND author:(" + names + ")";
 
       newQuery = this.getCurrentQuery().clone()
 
