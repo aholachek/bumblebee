@@ -95,22 +95,26 @@
 
                 <li><a href="http://adsabs.github.io/help/"  target="_blank">Help</a></li>
 
+
+                {{#if currentUser}}
+
+                <!-- Single button -->
                 <li class="dropdown">
-                    <button class="dropdown-toggle btn-link" data-toggle="dropdown" aria-expanded="false">
-                        Menu <span class="caret"></span></button>
+                    <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        {{currentUser}} <span class="caret"></span>
+                    </button>
                     <ul class="dropdown-menu" role="menu">
-                        {{#unless adsLoggedIn}}
-                        <li class="ads">
-                            <button class="btn-link"> (coming soon)</button>
-                        </li>
-                        {{else}}
-                        <li class="ads">
-                            <button class="btn-link sign-out"> Sign out</button>
-                        </li>
-                        {{/unless}}
+                        <li><a href="#" class="settings">Settings</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#" class="logout">Log Out</a></li>
                     </ul>
                 </li>
 
+                {{else}}
+                <li class="s-nav-border-right login"><a href="#">Log In</a></li>
+                <li class="register"><a href="#">Sign Up</a></li>
+
+                {{/if}}
 
             </ul>
 
