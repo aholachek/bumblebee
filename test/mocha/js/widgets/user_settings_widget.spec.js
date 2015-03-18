@@ -93,8 +93,84 @@ define([
 
         }
 
+      });
+
+
+      it("should interactively validate form inputs, only allowing correctly filled forms to be submitted", function(){
+
+        //testing only a single view-- is this ok?
+        var minsub = new (MinSub.extend({
+          request: function (apiRequest) {}
+        }))({verbose: false});
+
+        var hardened = minsub.beehive.getHardenedInstance();
+        sinon.stub(hardened, "getObject", function(){return {getRecaptchaKey : function(){return "foo"}}})
+
+        var u = new UserSettings();
+        u.activate(hardened);
+        $("#test").append(u.view.render().el);
+
+        //testing form validation for change password page
+        u.setSubView("password");
+
+        var triggerStub = sinon.stub(u.view, "trigger");
+
+        $("#test").find("input[name=old_password]").val("foo");
+        $("#test").find("input[name=old_password]").trigger("change");
+        expect($("#test").find("input[name=old_password]").parent().hasClass("has-success")).to.be.false;
+        expect($("#test").find("input[name=old_password]").parent().hasClass("has-error")).to.be.false;
+
+        $("#test").find("input[name=old_password]").val("Foooo5");
+        $("#test").find("input[name=old_password]").trigger("change");
+        expect($("#test").find("input[name=old_password]").parent().hasClass("has-success")).to.be.true;
+        expect($("#test").find("input[name=old_pasword]").parent().hasClass("has-error")).to.be.false;
+
+        $("#test").find("input[name=new_password1]").val("boo");
+        $("#test").find("input[name=new_password1]").trigger("change");
+        expect($("#test").find("input[name=new_password1]").parent().hasClass("has-success")).to.be.false;
+        expect($("#test").find("input[name=new_password1]").parent().hasClass("has-error")).to.be.false;
+
+        $("#test").find("input[name=new_password1]").val("Boooo3");
+        $("#test").find("input[name=new_password1]").trigger("change");
+        expect($("#test").find("input[name=new_password1]").parent().hasClass("has-success")).to.be.true;
+        expect($("#test").find("input[name=new_password1]").parent().hasClass("has-error")).to.be.false;
+
+        //premature submit should trigger error message instead of submitting the form,
+        // and show error highlight on invalid fields
+        expect($("#test").find("button[type=submit]").hasClass("btn-success")).to.be.false;
+        $("#test").find("button[type=submit]").click();
+
+        expect(triggerStub.callCount).to.eql(0);
+
+        expect($("#test").find("input[name=new_password1]").parent().hasClass("has-success")).to.be.true;
+        expect($("#test").find("input[name=new_password2]").parent().hasClass("has-error")).to.be.true;
+
+        expect($("#test").find("input[name=new_password1]").parent().find(".help-block").hasClass("no-show")).to.be.true;
+        expect($("#test").find("input[name=new_password2]").parent().find(".help-block").hasClass("no-show")).to.be.false;
+
+        $("#test").find("input[name=new_password2]").val("Boo");
+        $("#test").find("input[name=new_password2]").trigger("change");
+
+        expect($("#test").find("input[name=new_password2]").parent().hasClass("has-error")).to.be.true;
+
+        $("#test").find("input[name=new_password2]").val("Boooo3");
+        $("#test").find("input[name=new_password2]").trigger("change");
+
+        expect($("#test").find("input[name=new_password2]").parent().hasClass("has-error")).to.be.false;
+
+        //finally,  fake the g-recaptcha-response
+        u.subViewModels.changePasswordModel.set("g-recaptcha-response", "foo");
+        expect($("#test").find("button[type=submit]").hasClass("btn-success")).to.be.true;
+
+        $("#test").find("button[type=submit]").click();
+        expect(triggerStub.callCount).to.eql(1);
+
+
 
       });
+
+
+
 
    it("should listen to submit clicks and call the user's postData method", function(){
 

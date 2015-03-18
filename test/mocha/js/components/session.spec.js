@@ -23,13 +23,13 @@ define([
       expect(hardened.handleCallbackError).to.be.undefined;
 
       expect(hardened.start).to.be.undefined;
-      expect(_.keys(hardened)).to.eql(["isLoggedIn", "login", "logout", "register", "resetPassword", "deleteAccount", "__facade__", "mixIn"]);
+      expect(_.keys(hardened)).to.eql(["isLoggedIn", "login", "logout", "register", "resetPassword1", "resetPassword2", "deleteAccount", "__facade__", "mixIn"]);
 
     });
 
     it("has an explicit method for every action (login, logout, register, etc) a user might need to do before he/she is authenticated", function(){
 
-      var s = new Session();
+      var s = new Session({test: true});
 
       var minsub = new (MinSub.extend({
         request: function (apiRequest) {
@@ -63,28 +63,40 @@ define([
       expect(requestStub.args[2][0]).to.be.instanceof(ApiRequest)
       expect(requestStub.args[2][0].toJSON().target).to.eql("accounts/register");
       expect(requestStub.args[2][0].toJSON().options.type).to.eql("POST");
-      expect(requestStub.args[2][0].toJSON().options.data).to.eql('{"email":"goo@goo.com","password1":"foo","password2":"foo","g-recaptcha-response":"boo"}');
+      //test version just uses string  "location.origin", real version will use the actual origin
+      expect(requestStub.args[2][0].toJSON().options.data).to.eql('{"email":"goo@goo.com","password1":"foo","password2":"foo","g-recaptcha-response":"boo","verify_url":"location.origin/user/account/verify/accounts/register"}');
       expect(requestStub.args[2][0].toJSON().options.done).to.eql(s.registerSuccess);
       expect(requestStub.args[2][0].toJSON().options.fail).to.eql(s.registerFail);
 
-      debugger;
 
-      s.resetPassword({email: "goo@goo.com", "g-recaptcha-response" : "boo"});
+      s.resetPassword1({email: "goo@goo.com", "g-recaptcha-response" : "boo"});
 
       expect(requestStub.args[3][0]).to.be.instanceof(ApiRequest)
       expect(requestStub.args[3][0].toJSON().target).to.eql('accounts/reset-password/goo@goo.com');
       expect(requestStub.args[3][0].toJSON().options.type).to.eql("POST");
-      expect(requestStub.args[3][0].toJSON().options.data).to.eql('{"g-recaptcha-response":"boo"}');
-      expect(requestStub.args[3][0].toJSON().options.done).to.eql(s.resetPasswordSuccess);
-      expect(requestStub.args[3][0].toJSON().options.fail).to.eql(s.resetPasswordFail);
+      expect(requestStub.args[3][0].toJSON().options.data).to.eql('{"g-recaptcha-response":"boo","verify_url":"location.origin/user/account/verify/accounts/reset-password"}');
+      expect(requestStub.args[3][0].toJSON().options.done).to.eql(s.resetPassword1Success);
+      expect(requestStub.args[3][0].toJSON().options.fail).to.eql(s.resetPassword1Fail);
+
+      s.resetPassword2({email: "goo@goo.com", password1 : "1Aaaaa", password2 : "1Aaaaa"});
+
+      expect(requestStub.args[4][0]).to.be.instanceof(ApiRequest)
+      //test version just uses string  "location.origin", real version will use the actual origin
+      expect(requestStub.args[4][0].toJSON().target).to.eql('accounts/reset-password/goo@goo.com');
+      expect(requestStub.args[4][0].toJSON().options.type).to.eql("PUT");
+      expect(requestStub.args[4][0].toJSON().options.data).to.eql('{"password1":"1Aaaaa","password2":"1Aaaaa"}' );
+      expect(requestStub.args[4][0].toJSON().options.done).to.eql(s.resetPassword2Success);
+      expect(requestStub.args[4][0].toJSON().options.fail).to.eql(s.resetPassword2Fail)
 
       s.deleteAccount();
 
-      expect(requestStub.args[4][0]).to.be.instanceof(ApiRequest)
-      expect(requestStub.args[4][0].toJSON().target).to.eql("accounts/user/delete");
-      expect(requestStub.args[4][0].toJSON().options.type).to.eql("POST");
-      expect(requestStub.args[4][0].toJSON().options.done).to.eql(s.deleteSuccess);
-      expect(requestStub.args[4][0].toJSON().options.fail).to.eql(s.deleteFail);
+      expect(requestStub.args[5][0]).to.be.instanceof(ApiRequest)
+      expect(requestStub.args[5][0].toJSON().target).to.eql("accounts/user/delete");
+      expect(requestStub.args[5][0].toJSON().options.type).to.eql("POST");
+      expect(requestStub.args[5][0].toJSON().options.done).to.eql(s.deleteSuccess);
+      expect(requestStub.args[5][0].toJSON().options.fail).to.eql(s.deleteFail);
+
+      requestStub.restore();
 
     });
 

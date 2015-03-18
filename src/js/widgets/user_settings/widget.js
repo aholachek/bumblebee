@@ -13,7 +13,8 @@ define([
   'hbs!./templates/nav_template',
   'hbs!./templates/header_template',
   'backbone-validation',
-  'backbone.stickit'
+  'backbone.stickit',
+  'bootstrap'
 
 ], function(
   Marionette,
@@ -28,7 +29,8 @@ define([
   UserSettingsTemplate,
   DeleteAccountTemplate,
   NavTemplate,
-  HeadingTemplate
+  HeadingTemplate,
+  Bootstrap
   ){
 
   //this allows for instant validation of form fields using the backbone-validation plugin
@@ -216,7 +218,6 @@ define([
   ChangeTokenView = FormView.extend({
 
     template : TokenTemplate,
-
     className : "change-token"
 
   });
@@ -232,11 +233,15 @@ define([
   DeleteAccountView = FormView.extend({
 
     template : DeleteAccountTemplate,
-
     className : "delete-account",
 
-    onRender : function(){
-      this.activateValidation();
+    triggerSubmit : function(){
+      //manually close the modal, for some reason just the close markup
+      //only works some of the time
+      this.$(".modal").modal('hide');
+      $('body').removeClass('modal-open');
+      $('.modal-backdrop').remove();
+      FormFunctions.triggerSubmit.apply(this, arguments);
     }
   });
 
@@ -268,11 +273,8 @@ define([
     },
 
     template : UserSettingsTemplate,
-
     navTemplate : NavTemplate,
-
     headingTemplate : HeadingTemplate,
-
     className : "s-user-settings s-form-widget",
 
     regions : {

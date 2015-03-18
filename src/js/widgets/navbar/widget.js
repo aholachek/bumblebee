@@ -7,7 +7,6 @@ define([
   Marionette,
   BaseWidget,
   NavBarTemplate
-
   ){
 
   var NavView, NavModel, NavWidget;
@@ -16,11 +15,9 @@ define([
     defaults : function(){
       return {
         orcidModeOn : false,
-<<<<<<< HEAD
         orcidLoggedIn : false
-=======
         currentUser  : undefined
->>>>>>> user_settings and authentication widgets added, user object and session object added
+
       }
     }
   });
@@ -29,34 +26,25 @@ define([
 
     template : NavBarTemplate,
 
-<<<<<<< HEAD
-    triggers : {
-      "click .orcid-link" : "navigate-to-orcid-link"
-=======
-    events : {
-      "change .orcid-mode" : "changeOrcidMode",
-      'click li.ads button.sign-out': 'adsSignout'
-    },
 
     modelEvents : {
-      change: "render"
+      change: "render",
     },
 
     triggers : {
       "click .login" : "navigate-login",
       "click .register": "navigate-register",
       "click .settings" : "navigate-settings",
-      "click .logout" : "logout"
->>>>>>> user_settings and authentication widgets added, user object and session object added
+      "click .logout" : "logout",
+      "click .orcid-link" : "navigate-to-orcid-link"
+
     },
 
     events : {
       "click .orcid-dropdown ul" : "stopPropagation",
       "click button.orcid-sign-in" : "orcidSignIn",
       "change .orcid-mode" : "changeOrcidMode",
-<<<<<<< HEAD
       'click li.ads button.sign-out': 'adsSignout'
-
     },
 
     modelEvents: {
@@ -73,17 +61,9 @@ define([
     },
 
     orcidSignIn : function(){
-
-      this.model.set("uiOrcidModeOn", true);
-
-=======
-      "click ul.dropdown-menu a" : "dropdownClose"
+    this.model.set("uiOrcidModeOn", true);
     },
 
-    dropdownClose : function(e){
-      $(e.currentTarget).parents("li.dropdown").find("button").dropdown("toggle");
->>>>>>> user_settings and authentication widgets added, user object and session object added
-    },
 
     changeOrcidMode : function() {
       var that = this;
@@ -119,10 +99,8 @@ define([
       _.bindAll(this, ["handleUserAnnouncement"]);
       this.beehive = beehive;
       this.pubsub = beehive.getService("PubSub");
-      this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, this.handleUserAnnouncement);
-      this.setInitialVals();
-      this.pubsub = beehive.getService('PubSub');
       this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, _.bind(this.handleUserAnnouncement, this));
+      this.setInitialVals();
     },
 
     viewEvents : {
@@ -145,11 +123,10 @@ define([
       var user = this.getBeeHive().getObject("User");
       var orcidApi = this.getBeeHive().getService("OrcidApi");
       this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()}, {silent : true});
-
       this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
     },
 
-
+ 
     handleUserAnnouncement : function(msg, data){
 
       var user = this.getBeeHive().getObject("User");
@@ -160,8 +137,10 @@ define([
         this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
       }
        else if (msg == 'orcidUIChange') {
+
         var orcidApi = this.getBeeHive().getService("OrcidApi");
         this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()});
+
       }
 
     },
@@ -172,14 +151,14 @@ define([
     },
 
     modelEvents : {
-      "change:uiOrcidModeOn" :"toggleOrcidMode"
+      "change:orcidModeOn" :"toggleOrcidMode"
     },
 
     toggleOrcidMode : function() {
-      var user = this.getBeeHive().getObject('User'),
-        orcidApi = this.getBeeHive().getService("OrcidApi");
+      var user = this.beehive.getObject('User'),
+        orcidApi = this.beehive.getService("OrcidApi");
 
-      var newVal = this.model.get("uiOrcidModeOn");
+      var newVal = this.model.get("orcidModeOn");
       user.setOrcidMode(newVal);
 
       if (newVal){

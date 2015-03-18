@@ -471,19 +471,19 @@
 
 @state-success-text:             darken(@brand-success, 15%);
 @state-success-bg:               #dff0d8;
-@state-success-border:           @state-success-text;
+@state-success-border:           darken(@state-success-bg, 3%);
 
-@state-info-text:               darken(@brand-info, 10%);
+@state-info-text:                darken(@brand-info, 10%);
 @state-info-bg:                  #d9edf7;
-@state-info-border:              @state-info-text;
+@state-info-border:              darken(@state-info-bg, 3%);
 
 @state-warning-text:             darken(@brand-warning, 25%);
 @state-warning-bg:               #fcf8e3;
-@state-warning-border:           @state-warning-text;
+@state-warning-border:           darken(@state-warning-text, 3%);
 
 @state-danger-text:              darken(@brand-danger, 10%);
 @state-danger-bg:                #f2dede;
-@state-danger-border:             @state-danger-text;
+@state-danger-border:            darken(@state-danger-bg, 3%);
 
 
 //== Tooltips
@@ -594,7 +594,7 @@
 //## Define alert colors, border radius, and padding.
 
 @alert-padding:               15px;
-@alert-border-radius:         @border-radius-base;
+@alert-border-radius:         @border-radius-large;
 @alert-link-font-weight:      bold;
 
 @alert-success-bg:            @state-success-bg;

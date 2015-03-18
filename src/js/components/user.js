@@ -117,6 +117,7 @@ define([
     //every time something in the collection changes
     // tell subscribing widgets that something has changed, and tell them which
     // endpoint the change belonged to
+    //finally, check if logged in, might have to redirect to auth page/settings page
     broadcastChange : function(model){
       this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "user_info_change", model.get("target"));
       this.redirectIfNecessary();
@@ -135,8 +136,12 @@ define([
     },
 
     handleFailedGET : function(jqXHR, status, errorThrown){
-      var target = jqXHR.target;
-      this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "data_get_unsuccessful", target);
+      // sanity check : if user target is unauthorized, the user isn't actually logged in, so clear the model
+      // not sure if this gets all cases
+      if (jqXHR.target === "USER" && jqXHR.status === 401){
+        this.completeLogOut();
+      }
+      this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "data_get_unsuccessful", jqXHR.target);
     },
 
     // so success post handler can call the right callback depending on the target
@@ -151,6 +156,10 @@ define([
       },
       "CHANGE_PASSWORD" : function changePasswordSuccess(response, status, jqXHR){
         this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "data_post_successful", "CHANGE_PASSWORD");
+      },
+      "DELETE" : function deleteAccountSuccess(response, status, jqXHR){
+        this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "delete_account_successful", "DELETE");
+        this.completeLogOut();
       }
     },
 
@@ -243,7 +252,7 @@ define([
     redirectIfNecessary : function(){
       var pubsub = this.getPubSub();
       if (this.getBeeHive().getObject("MasterPageManager").currentChild === "AuthenticationPage" && this.isLoggedIn()){
-        pubsub.publish(pubsub.NAVIGATE, "settings-page");
+        pubsub.publish(pubsub.NAVIGATE, "index-page");
       }
       else  if (this.getBeeHive().getObject("MasterPageManager").currentChild === "SettingsPage" && !this.isLoggedIn()){
         pubsub.publish(pubsub.NAVIGATE, "authentication-page");
@@ -252,6 +261,8 @@ define([
 
     //this function is called immediately after the login is confirmed
     completeLogIn : function(){
+        //first, complete log out in case there was previous user data
+        this.completeLogOut();
         //fetch all user data
         var targets = this.collection.pluck("target");
         _.each(targets, function(e){
@@ -268,7 +279,7 @@ define([
    //this function is called immediately after the logout is confirmed
     completeLogOut : function(){
       // should the setting model be cleared?
-//      this.model.clear();
+      this.model.clear();
       //this clears the username at target = "USER", which is the cue that we are no longer signed in
       this.collection.reset(Config);
     },

@@ -25,8 +25,10 @@ define([
 
      sinon.stub(User.prototype, "broadcastChange");
      sinon.stub(User.prototype, "broadcastReset");
+     var logoutStub = sinon.stub(User.prototype, "completeLogOut");
 
      var u = new User();
+     u.pubsub = {publish : function(){}};
 
      var fetchStub = sinon.stub(u, "fetchData");
 
@@ -34,11 +36,19 @@ define([
 
      u.setUser("foo");
 
+     //automatically logs in user before doing a double check
+
      expect(u.collection.get("USER").get("user")).to.eql("foo");
      expect(u.isLoggedIn()).to.be.true;
 
      expect(fetchStub.args[0][0]).to.eql("TOKEN");
      expect(fetchStub.args[1][0]).to.eql("USER");
+
+     //will automatically log user out if the request to user endpoint returns status 401
+     u.handleFailedGET({target : "USER", status : 401 });
+
+     expect(logoutStub.callCount).to.eql(1);
+     logoutStub.restore();
 
      //clears the collection
      u.completeLogOut();
@@ -49,7 +59,6 @@ define([
 
      User.prototype.broadcastChange.restore();
      User.prototype.broadcastReset.restore();
-
 
    });
 
@@ -82,6 +91,9 @@ define([
 
      expect(u.pubsub.publish.args[0]).to.eql(["[PubSub]-User-Announcement", "user_info_change", "TOKEN"]);
 
+
+
+
    });
 
 
@@ -107,6 +119,7 @@ define([
       });
 
        expect(u.getUserName()).to.eql("foobly@gmail.com");
+
        User.prototype.broadcastChange.restore();
 
      });
@@ -135,6 +148,8 @@ define([
      expect(request.toJSON().options.type).to.eql("POST");
      expect(request.toJSON().options.data).to.eql('{"old_password":"foo","new_password1":"goo","new_password_2":"goo"}');
      expect(request.toJSON().options.context).to.eql(u);
+
+     requestStub.restore();
 
    });
 

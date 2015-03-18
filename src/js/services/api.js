@@ -8,7 +8,8 @@ define([
     'js/mixins/dependon',
     'js/components/api_response',
     'js/components/api_query',
-    'js/components/api_feedback'
+    'js/components/api_feedback',
+    'js/mixins/hardened',
   ],
   function(
     _,
@@ -18,7 +19,8 @@ define([
     Mixin,
     ApiResponse,
     ApiQuery,
-    ApiFeedback
+    ApiFeedback,
+    Hardened
     ) {
 
     var Api = GenericModule.extend({
@@ -73,10 +75,13 @@ define([
       },
       getNumOutstandingRequests: function() {
         return this.outstandingRequests;
+      },
+
+      hardenedInterface : {
+        request : "make a request to the API"
       }
+
     });
-
-
 
     Api.prototype.request = function(request, options) {
 
@@ -143,6 +148,9 @@ define([
     };
 
     _.extend(Api.prototype, Mixin.BeeHive);
+    _.extend(Api.prototype, Hardened);
+
 
     return Api
   });
+

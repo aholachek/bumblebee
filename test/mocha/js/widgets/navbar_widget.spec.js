@@ -116,6 +116,7 @@ define([
   })
   });
 
+
   it("should query initial user logged in/logged out state and show the correct options", function(){
 
     /*
@@ -126,6 +127,8 @@ define([
     var minsub = new (MinSub.extend({
       request: function (apiRequest) {}
     }))({verbose: false});
+
+    sinon.stub(User.prototype, "redirectIfNecessary");
     var u = new User();
 
     minsub.beehive.addObject("User", u);
@@ -158,7 +161,7 @@ define([
   });
 
 
-  it("should emit the proper events when links are clicked", function(){
+  it("should emit the proper events when user links are clicked", function(){
 
     var minsub = new (MinSub.extend({
       request: function (apiRequest) {}
@@ -195,7 +198,7 @@ define([
     //now show navbar in logged in state
     
     u.collection.get("USER").set("user", "foo");
-    minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change");
+    minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change", "USER");
 
     $("#test").find(".settings").click();
     expect(publishSpy.callCount).to.eql(3);
@@ -210,5 +213,7 @@ define([
     expect(s.logout.callCount).to.eql(1);
 
   });
+
+});
 
 });

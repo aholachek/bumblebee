@@ -31,6 +31,7 @@ define([
       defaults : {
         type: 'info',
         msg: undefined,
+        title: undefined,
         events: undefined,
         modal: false,
         //for non-modal alerts so they will
@@ -38,7 +39,6 @@ define([
         fade: true
       }
     });
-
 
     var delegateEventSplitter = /^(\S+)\s*(.*)$/;
     
@@ -57,7 +57,7 @@ define([
       },
 
       modelEvents: {
-        "change": 'render'
+        "change": 'render',
       },
 
       close: function() {
@@ -125,6 +125,7 @@ define([
         if (this.model.get('modal')) {
           this.showModal();
         }
+
       },
 
       showModal: function() {
@@ -146,7 +147,16 @@ define([
       },
 
       activate: function (beehive) {
-        //pass
+        _.bindAll(this, ["clearView"]);
+        //listen to navigate event and close widget
+        this.pubsub = beehive.getService("PubSub");
+        this.pubsub.subscribe(this.pubsub.NAVIGATE, this.clearView);
+
+      },
+
+      clearView : function(){
+        //to prevent re-rendering in inopportune moments
+        this.view.$el.empty();
       },
 
       closeModal: function() {

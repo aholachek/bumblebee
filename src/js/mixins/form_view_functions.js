@@ -1,9 +1,7 @@
 define([
-  "underscore",
+  "underscore"
 ], function(
-  _,
-  LoadingTemplate,
-  SuccessTemplate
+  _
 
   ){
 

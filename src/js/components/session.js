@@ -32,6 +32,8 @@ define([
     initialize: function (options) {
       var options = options || {};
 
+      this.test = options.test ? true : undefined;
+
       _.bindAll(this, [
         "loginSuccess",
         "loginFail",
@@ -90,8 +92,16 @@ define([
     },
 
     register: function (data) {
+      var base_url;
       //add base_url to data so email redirects to right url
-      _.extend(data, {verify_url : location.origin + "/user/account/verify/" + ApiTargets.REGISTER });
+      if (!this.test){
+        base_url = location.origin
+        _.extend(data, {verify_url : location.origin + "/#user/account/verify/" + ApiTargets.REGISTER.match(/\/(.*)$/)[1] });
+      }
+      else {
+        base_url = "location.origin"
+      }
+      _.extend(data, {verify_url : base_url + "/#user/account/verify/" + ApiTargets.REGISTER.match(/\/(.*)$/)[1] });
 
       var request = new ApiRequest({
         target : ApiTargets.REGISTER,
@@ -124,10 +134,17 @@ define([
 
     resetPassword1: function(data){
       //add base_url to data so email redirects to right url
-      _.extend(data, {verify_url : location.origin + "/user/account/verify/" + ApiTargets.RESET_PASSWORD });
+      if (!this.test){
+        base_url = location.origin
+        _.extend(data, {verify_url : location.origin + "/#user/account/verify/" + ApiTargets.RESET_PASSWORD.match(/\/(.*)$/)[1] });
+      }
+      else {
+        base_url = "location.origin"
+      }
+      _.extend(data, {verify_url : base_url + "/#user/account/verify/" + ApiTargets.RESET_PASSWORD.match(/\/(.*)$/)[1] });
 
      var email = data.email;
-     var data = _.pick(data, "g-recaptcha-response");
+     var data = _.omit(data, "email");
 
       var request = new ApiRequest({
         target : ApiTargets.RESET_PASSWORD + "/" + email,
@@ -145,7 +162,7 @@ define([
 
     resetPassword2: function(data){
       var email = data.email;
-      var data = _.pick(data, "g-recaptcha-response");
+      var data = _.omit(data, "email");
 
       var request = new ApiRequest({
         target : ApiTargets.RESET_PASSWORD + "/" + email,
@@ -169,6 +186,7 @@ define([
 
       //reset auth token by contacting Bootstrap
       promise = this.getApiAccess();
+      //user will redirect to the login page
       promise.done(user.completeLogIn());
 
       //notify interested widgets
@@ -176,16 +194,12 @@ define([
       promise.done(function(){
         pubsub.publish(pubsub.USER_ANNOUNCEMENT, "login_success");
       });
-      //finally, redirect to landing page
-      promise.done(function(){
-        pubsub.publish(pubsub.NAVIGATE, 'index-page');
-      });
     },
 
     loginFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Log in was unsuccessful (' + errorThrown + ')';
-      pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
+      var message = 'Log in was unsuccessful (' + xhr.responseJSON.error + ')';
+      pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade : true}));
       pubsub.publish(pubsub.USER_ANNOUNCEMENT, "login_fail");
     },
 
@@ -206,7 +220,7 @@ define([
 
     registerFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Registration was unsuccessful (' + errorThrown + ')';
+      var message = 'Registration was unsuccessful (' + xhr.responseJSON.error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(pubsub.USER_ANNOUNCEMENT, "register_fail");
     },
@@ -219,7 +233,7 @@ define([
 
     deleteFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Account deletion was unsuccessful (' + errorThrown + ')';
+      var message = 'Account deletion was unsuccessful (' + xhr.responseJSON.error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "user_delete_fail");
     },
@@ -231,7 +245,7 @@ define([
 
     resetPassword1Fail: function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Request for password reset was unsucessful (' + errorThrown + ')';
+      var message = 'Request for password reset was unsucessful (' + xhr.responseJSON.error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "reset_password_fail");
     },
@@ -243,7 +257,7 @@ define([
 
     resetPassword2Fail: function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Request for password reset was unsucessful (' + errorThrown + ')';
+      var message = 'Request for password reset was unsucessful (' + xhr.responseJSON.error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "reset_password_fail");
     },
