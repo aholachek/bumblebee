@@ -38,12 +38,13 @@ body {
 }
 
 .s-nav {
-  padding: 4% 2% 4% 10%;
-  border-left: 6px solid #fff;
+  padding: 4% 2% 4% 4%;
+  margin-left: 10%;
+  border-left: 4px solid #fff;
   .lh-transition(all, .5s, ease-out);
 
   &:hover{
-    border-left: 6px solid mix(@brand-primary-faded, #fff, 20%);
+    border-left: 4px solid mix(@brand-primary-faded, #fff, 20%);
   }
 
   .s-content{
@@ -52,11 +53,11 @@ body {
 }
 
 .s-nav-active {
-  border-left: 6px solid @brand-primary-faded;
+  border-left: 4px solid @brand-primary-faded;
   color: @brand-primary-faded;
 
   &:hover{
-    border-left: 6px solid @brand-primary-faded;
+    border-left: 4px solid @brand-primary-faded;
   }
 
 }
@@ -64,19 +65,20 @@ body {
 .s-nav-inactive {
   color: @gray-lighter;
   &:hover{
-    border-left:6px solid #fff;
+    border-left:4px solid #fff;
   }
 }
 
 .s-nav-inactive:hover {
   cursor: not-allowed;
   background-color: #fff;
-
 }
 
-.s-nav-header {
-  padding: 4%;
+.s-nav-header{
+  padding: 2% 0 2% 0;
   font-weight: 300;
   font-size: 18px;
-  background-color: darken(@gray-lighter, 5%);
+  margin: 5% 10%;
+  color: darken(@gray-light, 20%);
+  border-bottom: 2px solid @gray-light;
 }
