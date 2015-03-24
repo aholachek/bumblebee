@@ -27,10 +27,6 @@ define([
     template : NavBarTemplate,
 
 
-    modelEvents : {
-      change: "render",
-    },
-
     triggers : {
       "click .login" : "navigate-login",
       "click .register": "navigate-register",
@@ -79,10 +75,6 @@ define([
 
         that.render();
       }, 400);
-    },
-
-    adsSignout: function() {
-      this.trigger('ads-signout');
     }
   });
 
@@ -110,9 +102,9 @@ define([
       "navigate-register" : function(){
         this.pubsub.publish(this.pubsub.NAVIGATE, "authentication-page", {subView: "register"});
       },
-     "navigate-settings" : function() {
-       this.pubsub.publish(this.pubsub.NAVIGATE, "settings-page");
-     },
+      "navigate-settings" : function() {
+        this.pubsub.publish(this.pubsub.NAVIGATE, "settings-page");
+      },
       "logout" : function(){
         //log the user out
         this.beehive.getObject("Session").logout();
@@ -122,7 +114,7 @@ define([
     setInitialVals : function(){
       var user = this.getBeeHive().getObject("User");
       var orcidApi = this.getBeeHive().getService("OrcidApi");
-      this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()}, {silent : true});
+      this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()};
       this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
     },
 
@@ -136,18 +128,17 @@ define([
         //if user logs out, username will be undefined
         this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
       }
-       else if (msg == 'orcidUIChange') {
 
+      else if (msg == 'orcidUIChange') {
         var orcidApi = this.getBeeHive().getService("OrcidApi");
         this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()});
-
       }
-
     },
 
     viewEvents : {
       'ads-signout': 'signOut',
       "navigate-to-orcid-link" : "navigateToOrcidLink"
+
     },
 
     modelEvents : {
@@ -179,8 +170,8 @@ define([
       user.setOrcidMode(false);
     },
 
-    navigateToOrcidLink : function(){
 
+    navigateToOrcidLink : function(){
       this.pubsub.publish(this.pubsub.NAVIGATE, "orcid-page")
     }
 
