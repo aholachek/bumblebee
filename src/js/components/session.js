@@ -198,7 +198,8 @@ define([
 
     loginFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Log in was unsuccessful (' + xhr.responseJSON.error + ')';
+      var error = xhr.responseJSON.error ? xhr.responseJSON.error : "error unknown";
+      var message = 'Log in was unsuccessful (' + error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade : true}));
       pubsub.publish(pubsub.USER_ANNOUNCEMENT, "login_fail");
     },
@@ -220,7 +221,8 @@ define([
 
     registerFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Registration was unsuccessful (' + xhr.responseJSON.error + ')';
+      var error = xhr.responseJSON.error ? xhr.responseJSON.error : "error unknown";
+      var message = 'Registration was unsuccessful (' + error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(pubsub.USER_ANNOUNCEMENT, "register_fail");
     },
@@ -233,7 +235,8 @@ define([
 
     deleteFail : function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Account deletion was unsuccessful (' + xhr.responseJSON.error + ')';
+      var error = xhr.responseJSON.error ? xhr.responseJSON.error : "error unknown";
+      var message = 'Account deletion was unsuccessful (' + error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "user_delete_fail");
     },
@@ -245,7 +248,8 @@ define([
 
     resetPassword1Fail: function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Request for password reset was unsucessful (' + xhr.responseJSON.error + ')';
+      var error = xhr.responseJSON.error ? xhr.responseJSON.error : "error unknown";
+      var message = 'Request for password reset was unsucessful (' + error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "reset_password_fail");
     },
@@ -257,7 +261,8 @@ define([
 
     resetPassword2Fail: function(xhr, status, errorThrown){
       var pubsub = this.getPubSub();
-      var message = 'Request for password reset was unsucessful (' + xhr.responseJSON.error + ')';
+      var error = xhr.responseJSON.error ? xhr.responseJSON.error : "error unknown";
+      var message = 'Request for password reset was unsucessful (' + error + ')';
       pubsub.publish(pubsub.ALERT, new ApiFeedback({code: 0, msg: message, type : "danger", fade: true}));
       pubsub.publish(this.pubsub.USER_ANNOUNCEMENT, "reset_password_fail");
     },

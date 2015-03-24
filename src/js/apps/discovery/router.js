@@ -94,61 +94,65 @@ define([
 
 
       routeToVerifyPage : function(subView, token){
-//
-//        var successMessage, failMessage, successTitle, failTitle, route, done, fail, request;
-//
-//        subView = subView.toUpperCase();
-//
-//        if (subView === "REGISTER") {
-//          successTitle = "You have been successfully registered.",
-//              failTitle = "Registration failed.";
-//          successMessage= "Welcome to ADS";
-//          failMessage = "Please try again, or contact help-adsabs@cfa.harvard.edu for support";
-//              route = ApiTargets.VERIFY_REGISTER + "/" + token;
-//        }
-//        else if (subView === "EMAIL") {
-//         successTitle = "Email has been changed.",
-//            failTitle = "Attempt to change email failed";
-//          successMessage =  "WHOOOOOO HOOOOO!!!";
-//          failMessage = "Please try again, or contact help-adsabs@cfa.harvard.edu for support";
-//        }
-//        else if (subView === "RESET-PASSWORD") {
-//
-//          done = function() {
-//            //route to reset-password-2 form
-//            this.pubsub.publish(this.pubsub.NAVIGATE, 'settings-page', {subView: "reset-password-2"});
-//          };
-//         failMessage = "Reset password token was invalid.";
-////         route =
-//        }
-//
-//        done = done ? done : function() {
-//          //log the user in
-//          this.getBeeHive().getObject("User
-//          //redirect to index page
-//          this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
-//          //call alerts widget
-//          this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : successTitle, msg: successMessage, modal : true, type : "success"}));
-//        };
-//
-//        fail = function() {
-//          //redirect to index page
-//          this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
-//          //call alerts widget
-//          this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title: failTitle, msg: failMessage, modal : true, type : "danger"}));
-//        };
-//
-//         request = new ApiRequest({
-//            target : route,
-//           options : {
-//             type : "GET",
-//             context : this,
-//             done : done,
-//             fail : fail
-//           }
-//          });
-//
-//          this.getBeeHive().getService("Api").request(request);
+
+        var successMessage, failMessage, successTitle, failTitle, route, done, fail, request;
+
+        subView = subView.toUpperCase();
+
+
+        if (subView === "REGISTER") {
+          successTitle = "You have been successfully registered.",
+              failTitle = "Registration failed.";
+//          successMessage= "Welcome to ADS, " + +;
+          failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+              route = ApiTargets.VERIFY_REGISTER + "/" + token;
+        }
+        else if (subView === "EMAIL") {
+         successTitle = "Email has been changed.",
+            failTitle = "Attempt to change email failed";
+          successMessage =  "WHOOOOOO HOOOOO!!!";
+          failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+        }
+        else if (subView === "RESET-PASSWORD") {
+
+          done = function() {
+            //route to reset-password-2 form
+            this.pubsub.publish(this.pubsub.NAVIGATE, 'settings-page', {subView: "reset-password-2"});
+          };
+         failMessage = "Reset password token was invalid.";
+//         route =
+        }
+
+        done = done ? done : function() {
+          //user has been logged in already
+
+          //request bootstrap
+          this.getApiAccess();
+
+          //redirect to index page
+          this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
+          //call alerts widget
+          this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : successTitle, msg: successMessage, modal : true, type : "success"}));
+        };
+
+        fail = function() {
+          //redirect to index page
+          this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
+          //call alerts widget
+          this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title: failTitle, msg: failMessage, modal : true, type : "danger"}));
+        };
+
+         request = new ApiRequest({
+            target : route,
+           options : {
+             type : "GET",
+             context : this,
+             done : done,
+             fail : fail
+           }
+          });
+
+          this.getBeeHive().getService("Api").request(request);
         },
 
       orcidPage :function(){
@@ -184,6 +188,8 @@ define([
     });
 
     _.extend(Router.prototype, Dependon.BeeHive);
+    _.extend(Router.prototype, DiscoveryBootstrap);
+
     return Router;
 
   });
