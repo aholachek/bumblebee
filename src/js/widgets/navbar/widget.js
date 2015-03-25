@@ -17,7 +17,6 @@ define([
         orcidModeOn : false,
         orcidLoggedIn : false
         currentUser  : undefined
-
       }
     }
   });
@@ -26,6 +25,9 @@ define([
 
     template : NavBarTemplate,
 
+    modelEvents : {
+      change: "render"
+    },
 
     triggers : {
       "click .login" : "navigate-login",
@@ -33,7 +35,6 @@ define([
       "click .settings" : "navigate-settings",
       "click .logout" : "logout",
       "click .orcid-link" : "navigate-to-orcid-link"
-
     },
 
     events : {

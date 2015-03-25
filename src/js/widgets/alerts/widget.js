@@ -57,7 +57,7 @@ define([
       },
 
       modelEvents: {
-        "change": 'render',
+        "change": 'render'
       },
 
       close: function() {
@@ -168,6 +168,7 @@ define([
         this.model.set({
           events: feedback.events,
           msg: feedback.msg,
+          title: feedback.title,
           type: feedback.type,
           modal: feedback.modal,
           promise: promise

@@ -122,9 +122,12 @@ define([
         headers: {"X-BB-Api-Client-Version": this.clientVersion, 'X-CSRFToken' : this.csrf},
         context: {request: request, api: self },
         timeout: this.defaultTimeoutInMs,
-        cache: true // do not generate _ parameters (let browser cache responses)
+        cache: true, // do not generate _ parameters (let browser cache responses),
+        //need this so that cross domain cookies will work!
+        xhrFields: {
+          withCredentials: true
+        }
       };
-
 
       if (this.access_token) {
         opts.headers['Authorization'] = this.access_token;

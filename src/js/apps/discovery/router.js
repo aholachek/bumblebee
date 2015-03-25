@@ -99,19 +99,40 @@ define([
 
         subView = subView.toUpperCase();
 
-
         if (subView === "REGISTER") {
-          successTitle = "You have been successfully registered.",
-              failTitle = "Registration failed.";
-//          successMessage= "Welcome to ADS, " + +;
+          failTitle = "Registration failed.";
           failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
-              route = ApiTargets.VERIFY_REGISTER + "/" + token;
+          route = ApiTargets.VERIFY_REGISTER + "/" + token;
+
+          done = function(reply) {
+            //user has been logged in already by server
+            //request bootstrap
+            this.getApiAccess({reconnect : true});
+            //redirect to index page
+            this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
+            //call alerts widget
+            var title = "Welcome to ADS";
+            var msg = "<p>You have been successfully registered with the username</p> <p><b>"+ reply.email +"</b></p>";
+            this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
+          };
         }
         else if (subView === "EMAIL") {
-         successTitle = "Email has been changed.",
             failTitle = "Attempt to change email failed";
-          successMessage =  "WHOOOOOO HOOOOO!!!";
           failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+
+          done = function(reply) {
+            //user has been logged in already
+            //request bootstrap
+            this.getApiAccess();
+
+            //redirect to index page
+            this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
+            //call alerts widget
+
+            var title = "Email has been changed.";
+            var msg = "Your new ADS email is " + reply.email;
+            this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
+          };
         }
         else if (subView === "RESET-PASSWORD") {
 
@@ -122,19 +143,6 @@ define([
          failMessage = "Reset password token was invalid.";
 //         route =
         }
-
-        done = done ? done : function() {
-          //user has been logged in already
-
-          //request bootstrap
-          this.getApiAccess();
-
-          //redirect to index page
-          this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
-          //call alerts widget
-          this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : successTitle, msg: successMessage, modal : true, type : "success"}));
-        };
-
         fail = function() {
           //redirect to index page
           this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');

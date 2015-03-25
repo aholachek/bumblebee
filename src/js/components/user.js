@@ -66,7 +66,9 @@ define([
       //each entry in the collection corresponds to an target
       this.collection = new UserCollection(Config);
 
-     this.listenTo(this.collection, "change", this.broadcastChange);
+      _.bindAll(this, "completeLogIn", "completeLogOut");
+
+      this.listenTo(this.collection, "change", this.broadcastChange);
      this.listenTo(this.collection, "reset", this.broadcastReset);
     },
 
@@ -261,8 +263,6 @@ define([
 
     //this function is called immediately after the login is confirmed
     completeLogIn : function(){
-        //first, complete log out in case there was previous user data
-        this.completeLogOut();
         //fetch all user data
         var targets = this.collection.pluck("target");
         _.each(targets, function(e){
@@ -292,7 +292,8 @@ define([
       getUserData: "get a copy of user data currently in the model for an endpoint, or all user data (params: optional endpoint)",
       getUserName: "get the user's email before the @",
       isOrcidUIOn : "figure out if user has Orcid mode activated",
-      setOrcidMode : "set orcid ui on or off"
+      setOrcidMode : "set orcid ui on or off",
+      setUser : "set the username to log the user in and fetch his/her info"
     }
 
   });

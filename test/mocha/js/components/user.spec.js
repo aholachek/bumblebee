@@ -48,7 +48,23 @@ define([
      u.handleFailedGET({target : "USER", status : 401 });
 
      expect(logoutStub.callCount).to.eql(1);
+
      logoutStub.restore();
+
+     User.prototype.broadcastChange.restore();
+     User.prototype.broadcastReset.restore();
+   });
+
+   it("has a log out method", function(){
+
+     sinon.stub(User.prototype, "broadcastChange");
+     sinon.stub(User.prototype, "broadcastReset");
+
+     var u = new User();
+     u.pubsub = {publish : function(){}};
+     var fetchStub = sinon.stub(u, "fetchData");
+     u.setUser("foo");
+     expect(u.isLoggedIn()).to.eql(true);
 
      //clears the collection
      u.completeLogOut();
@@ -60,7 +76,7 @@ define([
      User.prototype.broadcastChange.restore();
      User.prototype.broadcastReset.restore();
 
-   });
+   })
 
    it("provides a hardened interface with the methods widgets and other objects might need", function(){
 
@@ -68,7 +84,7 @@ define([
      var hardened = u.getHardenedInstance();
      expect(hardened.__facade__).equals(true);
      expect(hardened.handleCallbackError).to.be.undefined;
-     expect(_.keys(hardened)).to.eql(["completeLogIn", "completeLogOut", "isLoggedIn", "postData", "getUserData", "getUserName", "isOrcidUIOn", "setOrcidMode", "__facade__", "mixIn"]);
+     expect(_.keys(hardened)).to.eql(["completeLogIn", "completeLogOut", "isLoggedIn", "postData", "getUserData", "getUserName", "isOrcidUIOn", "setOrcidMode", "setUser", "__facade__", "mixIn"]);
 
    });
 
@@ -90,7 +106,6 @@ define([
      u.collection.get("TOKEN").set("access_token", "boo");
 
      expect(u.pubsub.publish.args[0]).to.eql(["[PubSub]-User-Announcement", "user_info_change", "TOKEN"]);
-
 
 
 
