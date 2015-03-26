@@ -95,14 +95,12 @@ define([
 
       routeToVerifyPage : function(subView, token){
 
-        var successMessage, failMessage, successTitle, failTitle, route, done, fail, request;
+        var failMessage, failTitle, route, done, fail, request, type;
 
-        subView = subView.toUpperCase();
-
-        if (subView === "REGISTER") {
+        if (subView === "register") {
           failTitle = "Registration failed.";
-          failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
-          route = ApiTargets.VERIFY_REGISTER + "/" + token;
+          failMessage = "<p>Please try again, or contact <b> adshelp@cfa.harvard.edu for support </b></p>";
+          route = ApiTargets.VERIFY + "/" + token;
 
           done = function(reply) {
             //user has been logged in already by server
@@ -116,9 +114,11 @@ define([
             this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
           };
         }
-        else if (subView === "EMAIL") {
+        else if (subView === "change-email") {
             failTitle = "Attempt to change email failed";
-          failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+            failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+            route = ApiTargets.VERIFY + "/" + token;
+
 
           done = function(reply) {
             //user has been logged in already
@@ -130,18 +130,20 @@ define([
             //call alerts widget
 
             var title = "Email has been changed.";
-            var msg = "Your new ADS email is " + reply.email;
+            var msg = "Your new ADS email is <b>" + reply.email + "</b>";
             this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
           };
         }
-        else if (subView === "RESET-PASSWORD") {
+        else if (subView === "reset-password") {
 
           done = function() {
             //route to reset-password-2 form
             this.pubsub.publish(this.pubsub.NAVIGATE, 'settings-page', {subView: "reset-password-2"});
           };
-         failMessage = "Reset password token was invalid.";
-//         route =
+          failMessage = "Reset password token was invalid.";
+          route = ApiTargets["RESET-PASSWORD"];
+          type = "PUT";
+
         }
         fail = function() {
           //redirect to index page
@@ -153,7 +155,7 @@ define([
          request = new ApiRequest({
             target : route,
            options : {
-             type : "GET",
+             type : type || "GET",
              context : this,
              done : done,
              fail : fail

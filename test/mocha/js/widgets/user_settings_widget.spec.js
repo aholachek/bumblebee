@@ -36,6 +36,7 @@ define([
       $("#test").append(u.view.render().el);
 
       //initial view should be empty
+      //the subview is set by the navigator
 
       expect($("#test .content-container").html().trim()).to.eql('');
 
@@ -165,18 +166,54 @@ define([
         $("#test").find("button[type=submit]").click();
         expect(triggerStub.callCount).to.eql(1);
 
-
-
       });
-
-
-
 
    it("should listen to submit clicks and call the user's postData method", function(){
 
+     var minsub = new (MinSub.extend({
+       request: function (apiRequest) {}
+     }))({verbose: false});
+
+     var hardened = minsub.beehive.getHardenedInstance();
+     var postDataSpy = sinon.spy();
+     sinon.stub(hardened, "getObject", function(){return {getRecaptchaKey : function(){return "foo"}, postData: postDataSpy}})
+
+     var u = new UserSettings();
+     u.activate(hardened);
+     $("#test").append(u.view.render().el);
+
+     //testing form validation for change password page
+     u.setSubView("password");
+
+     $("#test").find("input[name=old_password]").val("Foooo5");
+     $("#test").find("input[name=old_password]").trigger("change");
+
+     $("#test").find("input[name=new_password1]").val("Boooo3");
+     $("#test").find("input[name=new_password1]").trigger("change");
+
+     $("#test").find("input[name=new_password2]").val("Boooo3");
+     $("#test").find("input[name=new_password2]").trigger("change");
+
+     $("#test").find("button[type=submit]").click();
+
+     expect(postDataSpy.callCount).to.eql(1);
+     expect(JSON.stringify(postDataSpy.args[0])).to.eql('["CHANGE_PASSWORD",{"old_password":"Foooo5","new_password1":"Boooo3","new_password2":"Boooo3"}]');
+
    });
 
-  it("should listen to the USER_ANNOUNCMENT and rerender with the proper data", function(){
+  it("should listen to the USER_ANNOUNCMENT and re-render with the proper data", function(){
+
+    var minsub = new (MinSub.extend({
+      request: function (apiRequest) {}
+    }))({verbose: false});
+
+    var hardened = minsub.beehive.getHardenedInstance();
+    var postDataSpy = sinon.spy();
+    sinon.stub(hardened, "getObject", function(){return {getRecaptchaKey : function(){return "foo"}, postData: postDataSpy}})
+
+    var u = new UserSettings();
+    u.activate(hardened);
+    $("#test").append(u.view.render().el);
 
 
   })

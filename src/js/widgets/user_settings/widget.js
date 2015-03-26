@@ -389,14 +389,18 @@ define([
       options = options || {};
 
       this.subViewModels = {};
+    //create and store the models
       _.each(this.modelConfig, function(v,k) {
         var instanceName = k[0].toLowerCase() + k.slice(1);
         this.subViewModels[instanceName] = new v();
       },this);
 
+    //the main model
       this.model = new UserSettingsModel();
 
+    //navigation collection
       this.navCollection = new UserSettingsCollection(this.layoutConfig);
+    //parent layout iew
       this.view = new UserSettingsView({model : this.model,
         collection : this.navCollection,
         subViewModels : this.subViewModels,
@@ -406,6 +410,7 @@ define([
     BaseWidget.prototype.initialize.apply(this, arguments);
     },
 
+   //only called by navigator
    setSubView : function(subView){
      this.navCollection.each(function(m){
        m.set("active", false, {silent : true});
@@ -450,6 +455,7 @@ define([
        }
      }
      else if (msg === "data_post_unsuccessful"){
+       //should show alert
      }
      else if (msg === "user_info_change"){
        //refresh all models in the widget
@@ -473,6 +479,7 @@ define([
      user.postData(target, model.toJSON());
    },
 
+   // this function puts the data from user object into the correct models
    getUserData :function(){
      var data = this.beehive.getObject("User").getUserData();
 

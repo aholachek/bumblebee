@@ -15,7 +15,7 @@ define([
     defaults : function(){
       return {
         orcidModeOn : false,
-        orcidLoggedIn : false
+        orcidLoggedIn : false,
         currentUser  : undefined
       }
     }
@@ -34,7 +34,8 @@ define([
       "click .register": "navigate-register",
       "click .settings" : "navigate-settings",
       "click .logout" : "logout",
-      "click .orcid-link" : "navigate-to-orcid-link"
+      "click .orcid-link" : "navigate-to-orcid-link",
+      "click .orcid-logout" : "logout-only-orcid"
     },
 
     events : {
@@ -58,9 +59,12 @@ define([
     },
 
     orcidSignIn : function(){
-    this.model.set("uiOrcidModeOn", true);
+    this.model.set("orcidModeOn", true);
+     //need to explicitly trigger to widget that this has changed
+     //otherwise it will be ignored, since it can also be changed
+     //from outside
+     this.trigger("user-change-orcid-mode");
     },
-
 
     changeOrcidMode : function() {
       var that = this;
@@ -68,11 +72,16 @@ define([
       setTimeout(function(){
 
         if (that.$(".orcid-mode").is(":checked")){
-          that.model.set("uiOrcidModeOn", true);
+          that.model.set("orcidModeOn", true);
         }
         else {
-          that.model.set("uiOrcidModeOn", false);
+          that.model.set("orcidModeOn", false);
         }
+
+        //need to explicitly trigger to widget that this has changed
+        //otherwise it will be ignored, since it can also be changed
+        //from outside
+        that.trigger("user-change-orcid-mode");
 
         that.render();
       }, 400);
@@ -97,6 +106,7 @@ define([
     },
 
     viewEvents : {
+      //dealing with authentication/user
       "navigate-login" : function(){
         this.pubsub.publish(this.pubsub.NAVIGATE, "authentication-page", {subView: "login"});
       },
@@ -107,45 +117,41 @@ define([
         this.pubsub.publish(this.pubsub.NAVIGATE, "settings-page");
       },
       "logout" : function(){
-        //log the user out
+        //log the user out of both the session and orcid
         this.beehive.getObject("Session").logout();
-      }
+        this.orcidLogOut();
+      },
+
+      //dealing with orcid
+      "navigate-to-orcid-link" : "navigateToOrcidLink",
+      "user-change-orcid-mode" : "toggleOrcidMode",
+      "logout-only-orcid" : "orcidLogOut"
     },
     //to set the correct initial values for signed in statuses
     setInitialVals : function(){
-      var user = this.getBeeHive().getObject("User");
-      var orcidApi = this.getBeeHive().getService("OrcidApi");
-      this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()};
-      this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
+      var user = this.beehive.getObject("User");
+      var orcidApi = this.beehive.getService("OrcidApi");
+      this.model.set({orcidModeOn : user.isOrcidUIOn(), orcidLoggedIn:  orcidApi.hasAccess()});
+      this.model.set("currentUser",  user.getUserName());
     },
-
  
     handleUserAnnouncement : function(msg, data){
 
-      var user = this.getBeeHive().getObject("User");
-      var orcidApi = this.getBeeHive().getService("OrcidApi");
+      var user = this.beehive.getObject("User");
+      var orcidApi = this.beehive.getService("OrcidApi");
 
       if (msg === "user_info_change" &&  data === "USER"){
         //if user logs out, username will be undefined
         this.model.set("currentUser",  this.beehive.getObject("User").getUserName());
       }
-
       else if (msg == 'orcidUIChange') {
-        var orcidApi = this.getBeeHive().getService("OrcidApi");
-        this.model.set({orcidModeOn : user.isOrcidModeOn(), orcidLoggedIn:  orcidApi.hasAccess()});
+        this.model.set({orcidModeOn : user.isOrcidUIOn(), orcidLoggedIn:  orcidApi.hasAccess()});
       }
     },
 
-    viewEvents : {
-      'ads-signout': 'signOut',
-      "navigate-to-orcid-link" : "navigateToOrcidLink"
-
-    },
-
-    modelEvents : {
-      "change:orcidModeOn" :"toggleOrcidMode"
-    },
-
+    //we don't want to respond to changes from pubsub or user object with this,
+    //only changes that the user has initiated using the navbar widget,
+    //otherwise things will be toggled incorrectly
     toggleOrcidMode : function() {
       var user = this.beehive.getObject('User'),
         orcidApi = this.beehive.getService("OrcidApi");
@@ -161,19 +167,13 @@ define([
       }
     },
 
-    signOut: function() {
-      var user = this.getBeeHive().getObject('User'),
-        orcidApi = this.getBeeHive().getService("OrcidApi");
-
-      if (orcidApi)
-        orcidApi.signOut();
-
-      user.setOrcidMode(false);
-    },
-
-
     navigateToOrcidLink : function(){
       this.pubsub.publish(this.pubsub.NAVIGATE, "orcid-page")
+    },
+
+    orcidLogOut : function() {
+      this.beehive.getService("OrcidApi").signOut();
+      this.beehive.getObject("user").setOrcidMode(false);
     }
 
   });

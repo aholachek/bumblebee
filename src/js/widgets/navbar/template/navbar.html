@@ -68,7 +68,10 @@
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <button class="btn btn-link orcid-link" href="#user/orcid" >My ORCID papers</button>
+                            <a href="orcid-link" href="#user/orcid" >My ORCID papers</a>
+                        </li>
+                        <li>
+                            <button class="btn btn-link orcid-logout" >Log out from ORCID</button>
                         </li>
                     </ul>
                 </li>
@@ -93,7 +96,7 @@
 
                 {{/if}}
 
-                <li><a href="http://adsabs.github.io/help/"  target="_blank">Help</a></li>
+                <li><a href="http://adsabs.github.io/help/" target="_blank">Help</a></li>
 
                 {{#if currentUser}}
 
@@ -110,7 +113,7 @@
                 </li>
 
                 {{else}}
-                <li class="register s-nav-border-right"><a href="#">Sign Up</a></li>
+                <li class="register"><a href="#">Sign Up</a></li>
                 <li class=" login"><a href="#">Log In</a></li>
                 {{/if}}
 

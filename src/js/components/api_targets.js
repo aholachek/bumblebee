@@ -22,10 +22,9 @@ define([
       SERVICE_METRICS: 'metrics',
 
       USER: 'accounts/user',
-      VERIFY: 'accounts/verify',
       LOGOUT: 'accounts/logout',
       REGISTER: 'accounts/register',
-      VERIFY_REGISTER : 'accounts/verify',
+      VERIFY : 'accounts/verify',
       DELETE: 'accounts/user/delete',
       TOKEN:'accounts/token',
       RESET_PASSWORD: 'accounts/reset-password',

@@ -70,6 +70,16 @@ define([
 
       this.listenTo(this.collection, "change", this.broadcastChange);
      this.listenTo(this.collection, "reset", this.broadcastReset);
+
+      //set base url, currently only necessary for change_email endpoint
+      if (!this.test){
+        this.base_url = location.origin;
+      }
+      else {
+        this.base_url = "location.origin"
+      }
+
+      this.buildAdditionalParameters();
     },
 
     activate: function (beehive) {
@@ -165,6 +175,16 @@ define([
       }
     },
 
+    buildAdditionalParameters : function() {
+      //any extra info that needs to be sent in post or get requests
+      //but not known about by the widget models goes here
+      //this will be called by user.initialize
+      var additional = {};
+          additional.CHANGE_EMAIL = { verify_url : this.base_url + "/#user/account/verify/change-email"};
+
+      this.additionalParameters = additional;
+    },
+
     handleSuccessfulPOST : function(response, status, jqXHR) {
       var target = jqXHR.target;
       var bound = _.bind(this.callbacks[target], this, response, status, jqXHR);
@@ -189,6 +209,9 @@ define([
       //make sure it has a callback to access later
       if (!this.callbacks[target]){
         throw new Error("a post request was made that doesn't have a success callback");
+      }
+      if (this.additionalParameters[target]){
+        _.extend(data, this.additionalParameters[target]);
       }
       this.composeRequest(target, "POST", data);
     },
