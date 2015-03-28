@@ -19,17 +19,20 @@
   }
 }
 
-
+//otherwise dropdown buttons are mis-styled
+//and won't match the actual links
 .nav .btn-link {
   color: @navbar-inverse-color;
   &:hover, &:focus  {
     text-decoration: none !important;
+    color: #fff;
   }
 }
 
-//for all dropdowns, because we replaced hash links with buttons styled like links
+.nav .dropdown-menu>li>a{
+  padding-left: 0;
+}
 .nav .dropdown-menu .btn-link {
-  color: @text-color;
   text-align: left;
 }
 
@@ -45,35 +48,6 @@
     top: 16px;
 }
 
-.s-orcid-button-container {
-  @media(min-width: @screen-sm-min){
-    position: relative;
-    left: -15%;
- }
-
-}
-
-
-/*container for inactive orcid title/button to turn on*/
-.s-orcid-button-container {
-  padding: 7px;
-  width: 280px;
-  height: 47px;
-  display: inline-block !important;
-  margin-top: -4px !important;
-  .lh-transition(color .4s ease, background-color .4s ease);
-  color: @gray-lightest;
-  background-color: lighten(@navbar-inverse-bg, 10%);
-  border-left: 1px solid @gray-dark;
-  border-right: 1px solid @gray-dark;
-
-  &.s-active {
-    color: white;
-
-  }
-}
-
-
 .switch {
   display: inline-block;
   position: relative;
@@ -84,7 +58,6 @@
   padding-bottom: 10%;
   width: 35%;
   float: right;
-
 }
 
 .s-orcid-title {
@@ -203,8 +176,4 @@ input.cmn-toggle-round:checked + label:after {
   top: -15px;
   left: 6px;
   padding-right: 10px;
-}
-.s-nav-border-right {
-  border-right: 3px solid #000;
-
 }

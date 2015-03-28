@@ -218,8 +218,6 @@ define([
      * them
      */
     onBootstrap: function(data) {
-
-      console.log("ON BOOTSTRAP");
       // set the API key
       if (data.access_token) {
         var api = this.getBeeHive().getService('Api');
