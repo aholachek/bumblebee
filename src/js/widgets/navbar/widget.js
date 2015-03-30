@@ -173,7 +173,7 @@ define([
 
     orcidLogOut : function() {
       this.beehive.getService("OrcidApi").signOut();
-      this.beehive.getObject("user").setOrcidMode(false);
+      this.beehive.getObject("User").setOrcidMode(false);
     }
 
   });
