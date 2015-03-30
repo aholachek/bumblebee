@@ -118,10 +118,15 @@ define([
             response.setApiQuery(new ApiQuery(response.get('responseHeader.params')));
             self.processResponse(response);
           });
+            //get username
+            var that = this;
+            oApi.getUserProfile().done(function(info){
+              var firstName = info["orcid-bio"]["personal-details"]["given-names"]["value"];
+              var lastName = info["orcid-bio"]["personal-details"]["family-name"]["value"];
+              that.model.set("orcidUserName", firstName + " " + lastName);
+            })
+          }
         }
-
-      }
-
     });
     return OrcidExtension(ResultsWidget);
 

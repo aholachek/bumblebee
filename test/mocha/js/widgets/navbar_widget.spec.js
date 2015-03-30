@@ -21,7 +21,7 @@ define([
       $("#test").empty();
     });
 
-    it("should query initial logged in / logged out orcid states in order to render the correct values", function(){
+    it("should query initial 9 logged in / logged out orcid states in order to render the correct values", function(){
 
       var minsub = new (MinSub.extend({
         request: function (apiRequest) {}
@@ -31,9 +31,17 @@ define([
       u.activate(minsub.beehive);
       minsub.beehive.addObject("User", u);
 
+
+      var profileInfo = {"orcid-bio":{"personal-details": {"family-name": {"value" : "Chyla"}, "given-names": {"value": "Roman"}}}}
+
       minsub.beehive.addService('OrcidApi', {
         hasAccess: function() {return true},
-        getHardenedInstance: function() {return this}
+        getHardenedInstance: function() {return this},
+        getUserProfile : function(){
+          var d = $.Deferred();
+          d.resolve(profileInfo);
+          return d
+        }
       });
 
       var n = new NavBarWidget();
@@ -42,12 +50,25 @@ define([
       expect($(".s-orcid-button-container").hasClass("s-active")).to.be.false;
       $('#test').empty();
 
-      u.setOrcidMode(true);
+
       var n = new NavBarWidget();
       n.activate(minsub.beehive.getHardenedInstance());
+      minsub.publish(minsub.USER_ANNOUNCEMENT, 'orcidUIChange');
+
       $("#test").append(n.render().el);
 
-      expect($(".orcid-dropdown li:first div:first").text().trim()).to.eql("You are signed in to ORCID and able to add papers from ADS to your ORCID profile.");
+      //orcid signed in, orcid mode off
+
+      expect($(".orcid-dropdown div:first").text()).to.eql(" Signed in to ORCID as Roman Chyla");
+      expect($("input.orcid-mode").is(":checked")).to.eql(false);
+
+      //orcid signed in, orcid mode on
+
+      n.view.model.set("orcidModeOn", true);
+
+      expect($(".orcid-dropdown div:first").text()).to.eql(" Signed in to ORCID as Roman Chyla");
+      expect($("input.orcid-mode").is(":checked")).to.eql(true);
+
 
     });
 
@@ -107,15 +128,9 @@ define([
       $("#test").find('.orcid-sign-in').click();
 
       $("#test").find('.orcid-link').click();
+      expect(n.pubsub.publish.args[0]).to.eql(["[Router]-Navigate-With-Trigger", "orcid-page"]);
 
-      expect(n.pubsub.publish.args[0]).to.eql(["[Router]-Navigate-Without-Trigger", "orcid-page"]);
-
-
-
-    })
-  })
-  });
-
+    });
 
   it("should query initial user logged in/logged out state and show the correct options", function(){
 
@@ -132,6 +147,11 @@ define([
     var u = new User();
 
     minsub.beehive.addObject("User", u);
+
+    minsub.beehive.addService('OrcidApi', {
+      hasAccess: function() {return true},
+      getHardenedInstance: function() {return this}
+    });
 
     var n = new NavBarWidget();
     n.activate(minsub.beehive.getHardenedInstance());
@@ -171,6 +191,14 @@ define([
     u.pubsub = {publish : function(){}, getPubSubKey : function(){}};
     minsub.beehive.addObject("User", u);
 
+    var orcidSignOutSpy = sinon.spy();
+
+    minsub.beehive.addService('OrcidApi', {
+      hasAccess: function() {return true},
+      getHardenedInstance: function() {return this},
+      signOut : orcidSignOutSpy
+    });
+
     var s = new Session();
     sinon.stub(s, "logout");
 
@@ -194,9 +222,9 @@ define([
     expect(publishSpy.args[1][0]).to.eql(minsub.pubsub.NAVIGATE);
     expect(publishSpy.args[1][1]).to.eql("authentication-page");
     expect(publishSpy.args[1][2].subView).to.eql("register");
-    
+
     //now show navbar in logged in state
-    
+
     u.collection.get("USER").set("user", "foo");
     minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change", "USER");
 
@@ -207,10 +235,10 @@ define([
     expect(publishSpy.args[2][2]).to.eql(undefined);
 
     $("#test").find(".logout").click();
-    expect(publishSpy.callCount).to.eql(3);
-    //calls session logout method explicitly
 
+    //calls session logout method explicitly
     expect(s.logout.callCount).to.eql(1);
+    expect(orcidSignOutSpy.callCount).to.eql(1);
 
   });
 

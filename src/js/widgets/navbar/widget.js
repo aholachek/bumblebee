@@ -16,7 +16,9 @@ define([
       return {
         orcidModeOn : false,
         orcidLoggedIn : false,
-        currentUser  : undefined
+        currentUser  : undefined,
+        orcidFirstName: undefined,
+        orcidLastName: undefined
       }
     }
   });
@@ -29,20 +31,18 @@ define([
       change: "render"
     },
 
-    triggers : {
-      "click .login" : "navigate-login",
-      "click .register": "navigate-register",
-      "click .settings" : "navigate-settings",
-      "click .logout" : "logout",
-      "click .orcid-link" : "navigate-to-orcid-link",
-      "click .orcid-logout" : "logout-only-orcid"
-    },
-
     events : {
       "click .orcid-dropdown ul" : "stopPropagation",
       "click button.orcid-sign-in" : "orcidSignIn",
       "change .orcid-mode" : "changeOrcidMode",
-      'click li.ads button.sign-out': 'adsSignout'
+      'click li.ads button.sign-out': 'adsSignout',
+      //to avoid stopPropagation as in triggers hash
+      "click .orcid-link" : function(){this.trigger("navigate-to-orcid-link")},
+      "click .orcid-logout" : function(){this.trigger("logout-only-orcid")},
+      "click .logout" : function(){this.trigger("logout")},
+      "click .login" : function(){this.trigger("navigate-login")},
+      "click .register": function(){this.trigger("navigate-register")},
+      "click .settings" : function(){this.trigger("navigate-settings")}
     },
 
     modelEvents: {
@@ -50,7 +50,7 @@ define([
     },
 
     stopPropagation : function(e) {
-     if (e.target.tagName === "button"){
+     if (e.target.tagName === "button" || e.target.tagName === "A"){
        return
     }
       else {
@@ -98,10 +98,12 @@ define([
     },
 
     activate: function (beehive) {
-      _.bindAll(this, ["handleUserAnnouncement"]);
+      _.bindAll(this, ["handleUserAnnouncement", "getOrcidUsername"]);
       this.beehive = beehive;
       this.pubsub = beehive.getService("PubSub");
-      this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, _.bind(this.handleUserAnnouncement, this));
+      this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, this.handleUserAnnouncement);
+      this.pubsub.subscribe(this.pubsub.APP_STARTED, this.getOrcidUsername);
+
       this.setInitialVals();
     },
 
@@ -134,6 +136,22 @@ define([
       this.model.set({orcidModeOn : user.isOrcidUIOn(), orcidLoggedIn:  orcidApi.hasAccess()});
       this.model.set("currentUser",  user.getUserName());
     },
+
+    getOrcidUsername : function(){
+      var that = this;
+      var orcidApi = this.beehive.getService("OrcidApi");
+      //get the orcid username if applicable
+      if (this.model.get("orcidLoggedIn")){
+        //set the orcid username into the model
+        var that = this;
+        orcidApi.getUserProfile().done(function(info){
+          var firstName = info["orcid-bio"]["personal-details"]["given-names"]["value"];
+          var lastName = info["orcid-bio"]["personal-details"]["family-name"]["value"];
+          that.model.set("orcidFirstName", firstName);
+          that.model.set("orcidLastName", lastName);
+        })
+      }
+    },
  
     handleUserAnnouncement : function(msg, data){
 
@@ -146,6 +164,9 @@ define([
       }
       else if (msg == 'orcidUIChange') {
         this.model.set({orcidModeOn : user.isOrcidUIOn(), orcidLoggedIn:  orcidApi.hasAccess()});
+        if (this.model.get("orcidLoggedIn")){
+              this.getOrcidUsername();
+        }
       }
     },
 
