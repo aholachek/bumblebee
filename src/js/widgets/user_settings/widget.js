@@ -298,7 +298,7 @@ define([
 
     modelEvents : {
       "change:user" : "renderHeading"
-    }s
+    },
 
     stopPropagation : function(){
       return false
