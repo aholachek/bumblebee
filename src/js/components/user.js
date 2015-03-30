@@ -164,7 +164,6 @@ define([
       },
       "CHANGE_EMAIL" : function ChangeEmailSuccess(response, status, jqXHR){
         this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "data_post_successful", "CHANGE_EMAIL");
-        //logout?
       },
       "CHANGE_PASSWORD" : function changePasswordSuccess(response, status, jqXHR){
         this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "data_post_successful", "CHANGE_PASSWORD");

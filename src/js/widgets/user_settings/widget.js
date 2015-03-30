@@ -288,7 +288,8 @@ define([
     },
 
     events : {
-      "click .nav-container a" : "changeActive"
+      "click .nav-container a" : "changeActive",
+      "click .user-pill-nav a:not(.dropdown-toggle)" : "stopPropagation"
     },
 
     collectionEvents : {
@@ -297,6 +298,10 @@ define([
 
     modelEvents : {
       "change:user" : "renderHeading"
+    }s
+
+    stopPropagation : function(){
+      return false
     },
 
     renderNav : function(){
@@ -344,9 +349,10 @@ define([
       this.content.show(new SuccessView({title : "Password Changed" , message : "Next time you log in, please use your new password"}));
     },
 
-    showEmailSuccessView : function(){
+    showEmailSuccessView : function(new_email){
       this.successView = true;
-      this.content.show(new SuccessView({title : "Email Changed"}));
+      var message =  "Check <strong>" + new_email + "</strong> for further instructions";
+      this.content.show(new SuccessView({title : "Email Changed", message : message}));
     },
 
     forwardSubmit : function(model){
@@ -444,7 +450,10 @@ define([
            this.view.showPasswordSuccessView();
            break;
          case "CHANGE_EMAIL":
-           this.view.showEmailSuccessView();
+          //get current email, this will be discarded
+          //by the call to "resetModels" below
+          var new_email = this.subViewModels.changeEmailModel.get("email");
+           this.view.showEmailSuccessView(new_email);
            break;
          case "TOKEN":
           this.getUserData();

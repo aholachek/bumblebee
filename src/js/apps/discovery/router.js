@@ -119,11 +119,10 @@ define([
             failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
             route = ApiTargets.VERIFY + "/" + token;
 
-
           done = function(reply) {
             //user has been logged in already
             //request bootstrap
-            this.getApiAccess();
+            this.getApiAccess({reconnect : true});
 
             //redirect to index page
             this.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');

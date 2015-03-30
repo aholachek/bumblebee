@@ -215,9 +215,7 @@ define([
     u.activate(hardened);
     $("#test").append(u.view.render().el);
 
-
-  })
-
+  });
 
   });
 
