@@ -1,30 +1,35 @@
 
-<div class="s-list-controls">
 
-    <div class="s-results-border-bottom">
-
+<div class="s-results-border-bottom">
+         <div class="row">
         <div class="col-sm-12">
             {{#if orcidUserName}}
-                <h2> <span class="s-light-font">Orcid Papers for </span>{{orcidUserName}}</h2>
+                <h2> <span class="s-light-font">ORCID Papers for </span>{{orcidUserName}}</h2>
             {{else}}
-                <h2 class="s-light-font">My Orcid Papers</h2>
+                <h2 class="s-light-font">My ORCID Papers</h2>
             {{/if}}
+        </div>
+     </div>
+    <div class="row">
+        <div class="col-sm-6">
+            Sort by
+               <button class="btn btn-link active">Date added to ORCID</button>
+               <button class="btn btn-link">Paper publication date</button>
+        </div>
+        <div class="col-sm-6">
+            Show
+            <button class="btn btn-link active">All ORCID papers</button>
+            <button class="btn btn-link">Papers added to ORCID from ADS</button>
+            <button class="btn btn-link">Papers added to ORCID from other sources</button>
+        </div>
     </div>
-</div>
+
+
 </div>
 
 <div class="row">
-    <h2 class="sr-only">Search Results</h2>
-
-
-    {{#if title}}
-    <div class="col-sm-12">
-        <h2 class="s-article-title">{{title}}</h2>
-    </div>
-    {{/if}}
     <ul class="col-sm-12 results-list  s-results-list list-unstyled s-display-block" aria-label="list of results">
     </ul>
-
 </div>
 {{#if pagination}}
 <div class="row">
