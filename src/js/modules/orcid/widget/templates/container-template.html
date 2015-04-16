@@ -11,17 +11,24 @@
         </div>
      </div>
     <div class="row">
+        {{#if hasDocs}}
         <div class="col-sm-6">
-            Sort by
-               <button class="btn btn-link active">Date added to ORCID</button>
-               <button class="btn btn-link">Paper publication date</button>
+            <i class="fa fa-sort"></i> Sort by:
+            <div class="s-radio-link sort">
+                <button class="btn btn-link {{#compare sort 'orcid-add'}} active {{/compare}}" data-sort="orcid-add">Date added to ORCID</button>
+                <button class="btn btn-link {{#compare sort 'pubdate'}} active {{/compare}}" data-sort="pubdate">Paper publication date</button>
+            </div>
+
         </div>
         <div class="col-sm-6">
-            Show
-            <button class="btn btn-link active">All ORCID papers</button>
-            <button class="btn btn-link">Papers added to ORCID from ADS</button>
-            <button class="btn btn-link">Papers added to ORCID from other sources</button>
+            <i class="fa fa-filter"></i> Show:
+            <div class="s-radio-link filter">
+                <button class="btn btn-link {{#compare filter 'both'}} active {{/compare}}" data-filter="both">All papers</button>
+                <button class="btn btn-link {{#compare filter 'ads'}} active {{/compare}}" data-filter="ads">Papers added from the ADS</button>
+                <button class="btn btn-link {{#compare filter 'others'}} active {{/compare}}" data-filter="others">Papers added from other sources</button>
+            </div>
         </div>
+        {{/if}}
     </div>
 
 

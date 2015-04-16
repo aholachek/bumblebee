@@ -36,6 +36,9 @@ define([
 
     var ResultsWidget = ListOfThingsWidget.extend({
       initialize : function(options){
+
+        var resultsWidgetThis = this;
+
         ListOfThingsWidget.prototype.initialize.apply(this, arguments);
 
         //now adjusting the List Model
@@ -45,13 +48,45 @@ define([
           });
         };
 
+        this.view.sortPapers = function(e){
+          this.$(".sort button").removeClass("active");
+          var $t = $(e.currentTarget);
+          $t.addClass("active");
+          resultsWidgetThis.model.set("sort", $t.data("sort"));
+        };
+
+        this.view.filterPapers = function(e){
+          this.$(".filter button").removeClass("active");
+          var $t = $(e.currentTarget);
+          $t.addClass("active");
+          resultsWidgetThis.model.set("filter", $t.data("filter"));
+        };
+
         this.view.template = ContainerTemplate;
         this.view.model.set({"mainResults": true}, {silent : true});
         this.listenTo(this.collection, "reset", this.checkDetails);
+
+        this.view.events = _.extend(this.view.events, {
+          "click .sort button" : "sortPapers",
+          "click .filter button" : "filterPapers"
+        });
+
+        this.model.on("change:sort", this.triggerUpdate, this);
+        this.model.on("change:filter", this.triggerUpdate, this);
+
+        this.model.set({sort : "orcid-add", filter : "both"});
+
+        this.view.delegateEvents();
       },
 
+      triggerUpdate : function(){
+        //ignore if there aren't any solr docs
+        if (this.model.get("hasDocs")){
+          this.update({sortBy : this.model.get("sort"), filterBy : this.model.get("filter")});
+        }
+      },
 
-      activate: function (beehive) {
+     activate: function (beehive) {
         this.pubsub = beehive.Services.get('PubSub');
         this.setBeeHive(beehive);
 
@@ -61,14 +96,22 @@ define([
         });
       },
 
-
-
       processDocs: function(jsonResponse, docs) {
         var start = 0;
         var docs = PaginationMixin.addPaginationToDocs(docs, start);
         _.each(docs, function(d,i){
           docs[i] = PapersUtilsMixin.prepareDocForViewing(d);
+          //add a year if it exists
+          if (d.bibcode){
+            docs[i].pubdate = parseInt(d.bibcode.slice(0,4));
+          }
+          else if (d.formattedDate){
+            docs[i].pubdate = parseInt(d.formattedDate.slice(0,4));
+          }
+          docs[i]["orcid-add"] = i;
         });
+        //show proper elements in container view
+        this.model.set("hasDocs", true);
         return docs;
       },
 
@@ -165,8 +208,11 @@ define([
             coll = new this.hiddenCollection.constructor(coll.filter(predicate));
           }
 
-
           if (_.has(options, 'sortBy') && options.sortBy) {
+            var allowedVals = ["pubdate", "orcid-add"];
+            if (!_.contains(allowedVals, options.sortBy)){
+              throw Error("Unknown value for the sort: " + options.sortBy);
+            }
             var idx = 0;
             coll = new this.hiddenCollection.constructor(_.map(coll.sortBy(options.sortBy), function(x) {
               x.attributes.resultsIndex = idx++;
