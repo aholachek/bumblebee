@@ -1,8 +1,8 @@
-
+<div class="container-fluid">
 
 <div class="s-results-border-bottom">
          <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-11 col-sm-offset-1">
             {{#if orcidUserName}}
                 <h2> <span class="s-light-font">ORCID Papers for </span>{{orcidUserName}}</h2>
             {{else}}
@@ -12,7 +12,7 @@
      </div>
     <div class="row">
         {{#if hasDocs}}
-        <div class="col-sm-6">
+        <div class="col-sm-5 col-sm-offset-1">
             <i class="fa fa-sort"></i> Sort by:
             <div class="s-radio-link sort">
                 <button class="btn btn-link {{#compare sort 'orcid-add'}} active {{/compare}}" data-sort="orcid-add">Date added to ORCID</button>
@@ -20,12 +20,20 @@
             </div>
 
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-5">
             <i class="fa fa-filter"></i> Show:
             <div class="s-radio-link filter">
-                <button class="btn btn-link {{#compare filter 'both'}} active {{/compare}}" data-filter="both">All papers</button>
-                <button class="btn btn-link {{#compare filter 'ads'}} active {{/compare}}" data-filter="ads">Papers added from the ADS</button>
-                <button class="btn btn-link {{#compare filter 'others'}} active {{/compare}}" data-filter="others">Papers added from other sources</button>
+                <button class="btn btn-link {{#compare filter 'all'}} active {{/compare}}" data-filter="all">All papers ({{hasDocs}}) </button>
+                {{#if adsPaperCount}}
+                <button class="btn btn-link {{#compare filter 'ads'}} active {{/compare}}" data-filter='ads'>Papers added from the ADS ({{adsPaperCount}})</button>
+                {{/if}}
+                {{#if otherPaperCount}}
+                <button class="btn btn-link {{#compare filter 'others'}} active {{/compare}}" data-filter='others'> Papers added from other sources ({{otherPaperCount}})</button>
+                {{/if}}
+                {{#if bothPaperCount}}
+                <button class="btn btn-link {{#compare filter 'both'}} active {{/compare}}" data-filter='both'>Papers added by both the ADS and other sources ({{bothPaperCount}})</button>
+                {{/if}}
+
             </div>
         </div>
         {{/if}}
@@ -34,7 +42,7 @@
 
 </div>
 
-<div class="row">
+<div>
     <ul class="col-sm-12 results-list  s-results-list list-unstyled s-display-block" aria-label="list of results">
     </ul>
 </div>
@@ -60,3 +68,4 @@
 </div>
 {{/if}}
 
+</div>

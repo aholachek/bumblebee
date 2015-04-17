@@ -59,7 +59,8 @@ define([
           this.$(".filter button").removeClass("active");
           var $t = $(e.currentTarget);
           $t.addClass("active");
-          resultsWidgetThis.model.set("filter", $t.data("filter"));
+          var filter = $t.data("filter");
+          resultsWidgetThis.model.set("filter", filter);
         };
 
         this.view.template = ContainerTemplate;
@@ -74,7 +75,7 @@ define([
         this.model.on("change:sort", this.triggerUpdate, this);
         this.model.on("change:filter", this.triggerUpdate, this);
 
-        this.model.set({sort : "orcid-add", filter : "both"});
+        this.model.set({sort : "orcid-add", filter : "all"});
 
         this.view.delegateEvents();
       },
@@ -82,7 +83,11 @@ define([
       triggerUpdate : function(){
         //ignore if there aren't any solr docs
         if (this.model.get("hasDocs")){
-          this.update({sortBy : this.model.get("sort"), filterBy : this.model.get("filter")});
+          var filter = this.model.get("filter");
+          if (filter === "all"){
+            filter = [null, "ads", "both", "others"];
+          }
+          this.update({sortBy : this.model.get("sort"), filterBy : filter });
         }
       },
 
@@ -110,8 +115,7 @@ define([
           }
           docs[i]["orcid-add"] = i;
         });
-        //show proper elements in container view
-        this.model.set("hasDocs", true);
+
         return docs;
       },
 
@@ -160,6 +164,14 @@ define([
           var response = new JsonResponse(data);
           response.setApiQuery(new ApiQuery(response.get('responseHeader.params')));
           self.processResponse(response);
+
+          self.setFilterCounts.call(self);
+
+
+         //listen to further changes on the orcid vals in the models
+         //is this necessary?
+         self.collection.on("change:orcid", this.setFilterCounts);
+
         });
           //get username
           var that = this;
@@ -167,8 +179,26 @@ define([
             var firstName = info["orcid-bio"]["personal-details"]["given-names"]["value"];
             var lastName = info["orcid-bio"]["personal-details"]["family-name"]["value"];
             that.model.set("orcidUserName", firstName + " " + lastName);
-          })
+          });
+
+
         }
+      },
+      /*
+      * check how many of each type of provenance types, so this info can be shown in the filter
+      * */
+
+      setFilterCounts : function(){
+
+        var docs = this.collection.toJSON();
+
+        //show proper elements in container view
+        this.model.set("hasDocs", docs.length);
+
+        this.model.set("adsPaperCount", _.filter(docs, function(d){ if (d.orcid && d.orcid.provenance == "ads"){return true}}).length);
+        this.model.set("otherPaperCount", _.filter(docs, function(d){ if (d.orcid && d.orcid.provenance == "others"){return true}}).length);
+        this.model.set("bothPaperCount", _.filter(docs, function(d){ if (d.orcid && d.orcid.provenance == "both"){return true}}).length);
+
       },
 
       /**
@@ -203,7 +233,7 @@ define([
 
             var predicate = function(model) {
               if (model.attributes.orcid && _.contains(cond, model.attributes.orcid.provenance))
-                return true;
+               return true;
             };
             coll = new this.hiddenCollection.constructor(coll.filter(predicate));
           }
@@ -221,7 +251,12 @@ define([
           }
 
           this.hiddenCollection.reset(coll.models);
-          this.updatePagination({});
+
+          this.updatePagination({
+            numFound : coll.models.length,
+            perPage : Math.min([20, coll.models.length]),
+            page : 0
+          });
         }
       }
     });

@@ -57,6 +57,7 @@ require.config({
         DetailsPage: 'js/wraps/details_page_manager',
         AuthenticationPage: 'js/wraps/authentication_page_manager',
         SettingsPage: 'js/wraps/user_settings_page_manager',
+        OrcidPage: 'js/wraps/orcid_page_manager',
 
         Authentication: 'js/widgets/authentication/widget',
         UserSettings: 'js/widgets/user_settings/widget',

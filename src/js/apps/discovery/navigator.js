@@ -167,7 +167,7 @@ define([
 
           var orcidWidget = app.getWidget('OrcidBigWidget');
           if (orcidWidget) {
-              app.getObject('MasterPageManager').show('SearchPage',
+              app.getObject('MasterPageManager').show('OrcidPage',
                 ['OrcidBigWidget', 'SearchWidget', 'AlertsWidget']);
           }
           else {
