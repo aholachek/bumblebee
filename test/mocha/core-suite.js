@@ -1,6 +1,8 @@
 define([], function() {
 
   var tests  = [
+      '/apps/discovery/router.spec.js',
+
       '/components/app_storage.spec.js',
       '/components/multi_params.spec.js',
       '/components/solr_params.spec.js',
@@ -21,6 +23,8 @@ define([], function() {
       '/components/history_manager.spec.js',
       '/components/user.spec.js',
       '/components/session.spec.js',
+      '/components/library_controller.spec.js',
+      '/components/recaptcha_manager.spec.js',
 
       '/components/discovery_mediator.spec.js',
       '/components/alerts_mediator.spec.js',
@@ -34,8 +38,9 @@ define([], function() {
       '/mixins/link_generator_mixin.spec.js',
       '/mixins/add_stable_index_to_collection.spec.js',
       '/mixins/page-manager-mixin.spec.js',
-      '/mixins/papers_utils.spec.js'
-
+      '/mixins/papers_utils.spec.js',
+      '/mixins/openurl_generator.spec.js'
+      
   ];
   return tests;
 });

@@ -30,13 +30,13 @@ define(['marionette',
       //setting some constants for the graph
       this.bins = 12; //will be around 12, depending on remainders
       this.margin = {
-        top   : 0,
-        right : 10,
-        bottom: 50,
-        left  : 50
+        top   : 5,
+        right : 5,
+        bottom: 20,
+        left  : 20
       };
-      this.fullWidth = 280;
-      this.fullHeight = 200;
+      this.fullWidth = 110;
+      this.fullHeight = 100;
 
       this.width = this.fullWidth - this.margin.left - this.margin.right;
       this.height = this.fullHeight - this.margin.top - this.margin.bottom;
@@ -66,34 +66,27 @@ define(['marionette',
 
     events: {
       "click .apply"         : "submitFacet",
-      "blur input[type=text]": "triggerGraphChange"
+      "blur input[type=text]": "triggerGraphChange",
+      "click .view-metrics" : "forwardNavigationEvent"
     },
 
 
     pulseApplyButton : function(){
-
-      var that = this;
-
       this.$(".apply").addClass("draw-attention-primary-faded");
-
-
       //this initiates an animation that lasts for 6 second
-
       setTimeout(function(){
-
         this.$(".apply").removeClass("draw-attention-primary-faded");
-
       }, 2000)
 
     },
 
+    forwardNavigationEvent : function(){
+      this.trigger("navigate", "show-metrics");
+    },
 
     onRender: function () {
-
       if (this.model.get("graphData").length < 2){
-
         this.$el.html("Too little data to make a useful graph.")
-
       }
       else {
         this.insertLegend();
@@ -102,9 +95,6 @@ define(['marionette',
         this.buildSlider();
         if (this.addToOnRender){
           this.addToOnRender()
-        }
-        if (this.addChartEventListeners){
-          this.addChartEventListeners();
         }
       }
     }

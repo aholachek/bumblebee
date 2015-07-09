@@ -455,6 +455,8 @@ module.exports = function(grunt) {
           moduleThreshold : 80,
           modulePattern : "../../js/(.*)",
           customModuleThreshold: {
+            "widgets/alerts/widget.js" : 73,
+            "apps/discovery/router.js": 35,
             "widgets/facet/graph-facet/h_index_graph.js":2,
             "widgets/facet/graph-facet/year_graph.js":2,
             "wraps/graph_tabs.js":5,
@@ -466,6 +468,7 @@ module.exports = function(grunt) {
             "page_managers/three_column_view.js":60,
             "mixins/widget_utility.js":40,
             "components/query_builder/rules_translator.js":45,
+            "components/csrf_manager.js": 25,
             "widgets/base/tree_view.js":50,
             "widgets/facet/factory.js":50,
             "widgets/list_of_things/item_view.js":50,
@@ -476,25 +479,30 @@ module.exports = function(grunt) {
             "widgets/network_vis/network_widget.js":60,
             "mixins/dependon.js":61,
             "widgets/facet/tree_view.js":62,
-            "widgets/search_bar/search_bar_widget.js":65,
             "widgets/facet/item_view.js":71,
+            "widgets/query_info/query_info_widget.js":50,
             "widgets/resources/widget.js":72,
             "wraps/table_of_contents.js":73,
             "bugutils/minimal_pubsub.js":74,
             "components/history_manager.js":75,
             "components/api_feedback.js":77,
             "components/transition.js":77,
+            "components/recaptcha_manager.js":49,
+            "components/user.js": 78,
             "widgets/dropdown-menu/widget.js":78,
             "widgets/list_of_things/paginated_view.js":78,
             "wraps/paper_network.js": 77, // some tests don't run properly in phantomjs,
-
+            "wraps/paper_export.js": 68,
+            "widgets/recommender/widget.js" : 65,
             "wraps/discovery_mediator.js": 5, // these two guys are complex to test (but i've already started)
             "mixins/feedback_handling.js": 35,
             "mixins/discovery_bootstrap.js": 1,
             "widgets/navbar/widget.js": 53,
             "widgets/success/view.js": 60,
             "widgets/authentication/widget.js": 68,
-            "widgets/user_settings/widget.js": 75
+            "widgets/user_settings/widget.js": 75,
+            "widgets/library_individual/views/view_library.js": 67,
+            "components/library_controller.js" : 66
 
           }
         }

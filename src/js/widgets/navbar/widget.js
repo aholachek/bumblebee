@@ -23,7 +23,9 @@ define([
         orcidLoggedIn: false,
         currentUser: undefined,
         orcidFirstName: undefined,
-        orcidLastName: undefined
+        orcidLastName: undefined,
+        //should it show hourly banner?
+        hourly : false
       }
     }
   });
@@ -58,9 +60,6 @@ define([
       },
       "click .register": function () {
         this.trigger("navigate-register")
-      },
-      "click .settings": function () {
-        this.trigger("navigate-settings")
       },
       "click code": function (e) {
         this.trigger('search-author');
@@ -138,7 +137,7 @@ define([
         this.pubsub.publish(this.pubsub.NAVIGATE, "authentication-page", {subView: "register"});
       },
      "navigate-settings" : function() {
-       this.pubsub.publish(this.pubsub.NAVIGATE, "settings-page");
+       this.pubsub.publish(this.pubsub.NAVIGATE, "UserPreferences");
      },
       "logout" : function() {
         //log the user out of both the session and orcid
@@ -177,14 +176,18 @@ define([
           that.model.set("orcidURI", info["orcid-identifier"]["uri"]);
         })
       }
+
+      //also set in the "hourly" flag
+      var hourly = this.BeeHive.getObject("AppStorage").getConfigCopy().hourly;
+      this.model.set("hourly", hourly);
     },
 
-    handleUserAnnouncement : function(msg, data) {
+    handleUserAnnouncement : function(msg, arg2, arg3) {
 
       var user = this.getBeeHive().getObject("User");
       var orcidApi = this.getBeeHive().getService("OrcidApi");
 
-      if (msg === "user_info_change" && data === "USER") {
+      if (msg === "user_info_change" && arg2 === "USER") {
         //if user logs out, username will be undefined
         this.model.set("currentUser", this.getBeeHive().getObject("User").getUserName());
       }

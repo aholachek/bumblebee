@@ -48,6 +48,13 @@ define([], function() {
      */
     EXECUTE_REQUEST: '[PubSub]-Execute-Request',
 
+
+    /**
+     * Called from the router, the QID will be passed; the query needs to be
+     * loaded and executed
+     */
+    EXECUTE_STORED_QUERY: '[PubSub]-Execute-Stored-Query',
+
     /**
      * Published by FC's - typically Mediator - when a response has been retrieved
      * for a given ApiRequest.
@@ -111,6 +118,13 @@ define([], function() {
 
     NAVIGATE : '[Router]-Navigate-With-Trigger',
 
+    /*
+    * so navigator can notify interested widgets about a change
+    * from search page to user page, for instance-- navigator cannot
+    * to this since it listens to many events including widget-show events
+    * */
+    PAGE_CHANGE: '[Navigator]Page-Changed',
+
     /*for custom widget-to-widget events*/
     CUSTOM_EVENT : '[PubSub]-Custom-Event',
 
@@ -144,7 +158,17 @@ define([], function() {
     /**
      * Is triggered when user selects/deselects records
      */
-    PAPER_SELECTION: "[User]-Paper-Selection"
+    PAPER_SELECTION: "[User]-Paper-Selection",
+
+    //instead of toggling, adds all papers
+    BULK_PAPER_SELECTION: "[User]-Bulk-Paper-Selection",
+    /*
+    * is triggered by app storage itself when list of selected papers changes
+    * */
+    STORAGE_PAPER_UPDATE: "[User]-Paper-Update",
+
+
+    LIBRARY_CHANGE : "[PubSub]-Library-Change"
 
 };
 

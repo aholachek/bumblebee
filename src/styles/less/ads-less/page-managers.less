@@ -1,7 +1,7 @@
 /* keeps the top container for the search bar from collapsing when
 s-search-bar-motion is applied */
 .s-stable-search-bar-height {
-  min-height: 100px;
+  min-height: 120px;
   .border-default-light;
 }
 
@@ -31,12 +31,6 @@ s-search-bar-motion is applied */
 
     &:hover {
       .lh-box-shadow(1 1px 5px darken(@gray-light, 4%));
-      //      width:150px;
-      //
-      //      .descriptor {
-      //        display: inline-block
-      //      }
-      .button-shadow;
     }
   }
 
@@ -79,15 +73,6 @@ s-search-bar-motion is applied */
 /* Styles for results and abstract page */
 
 
-.s-content-container {
-
-  border-radius: @border-radius-base;
-  background-color: @body-bg;
-  border: 1px solid lighten(@border-light-default-color, 8%);
-  .default-box-shadow;
-
-}
-
 .s-main-content-container{
 
   .clearfix;
@@ -98,9 +83,24 @@ s-search-bar-motion is applied */
   position: relative;
 }
 
+//this class is useful if you want to apply  a background to
+//div[data-widget] when the widget doesnt always need the background
+
+.s-inner-div-background {
+  margin-top: 30px;
+
+
+  >div {
+    .s-main-content-container;
+    margin: 0;
+  }
+
+}
+
 .s-dynamic-page-body {
   background-color:  @results-page-background;
-
+  padding-bottom: 30px;
+  min-height: 500px;
 }
 
 .s-left-column {
@@ -202,17 +202,24 @@ Styles for Abstract Page
 .s-right-col-widget-container {
   .s-content-container;
   padding: 5%;
+  margin-bottom: 10px;
 
   li {
-    margin: 0 0 1% 10%;
+    margin: 0 0 1% 6%;
   }
 
 }
 .s-right-col-widget-title {
-  display: inline-block;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 20px;
+  font-variant: small-caps;
+  color: @gray-light;
+  text-transform: lowercase;
 
+}
 
+.s-right-col-widget-title.disabled {
+  color: @gray-lighter;
 }
 /*
 overriding bootstrap col widths
@@ -236,6 +243,16 @@ overriding bootstrap col widths
   .col-sm-2 {
 
   width : 14.666667%;
+
+  }
+}
+
+
+.s-landing-page-layout {
+
+  .s-search-bar-rows-container {
+    position: relative;
+    left: -1.5%;
 
   }
 }

@@ -4,23 +4,17 @@
     <div class="col-sm-12 s-quick-add" aria-label="quick add fields">
              <div id="expanded-search-form" class="unselectable">
                  <div id="field-options">
-                     <button class="btn btn-link btn-sm" data-field="author">Author</button>
+                     <span class="s-field-options">insert field:</span>
+                     <button class="btn btn-link btn-sm"  data-field="author"  data-punc='"'>Author</button>
+                     <button class="btn btn-link btn-sm"  data-field="first-author" data-punc='"'>First Author</button>
+                     <button class="btn btn-link btn-sm"  title="limit search to abstract and title fields" data-toggle="tooltip" data-field="abstract" data-punc='"'>Abstract</button>
+                     <button class="btn btn-link btn-sm"  title="e.g. year:1999 or year:1999-2001" data-toggle="tooltip" data-field="year">Year</button>
+                     <button class="btn btn-link btn-sm"  title="search titles, abstract, and text of the articles" data-toggle="tooltip" data-field="full" data-punc="(">Fulltext</button>
+                     <button class="btn btn-link btn-sm"  title="find review articles e.g. reviews(exoplanets)" data-toggle="tooltip" data-field="operator-reviews">Reviews(...)</button>
+                     <button class="btn btn-link btn-sm"  title='find all citing articles e.g. citations(author:"^kurtz,m")' data-toggle="tooltip" data-field="operator-citations">Citations(...)</button>
+                     <button class="btn btn-link btn-sm"  title='find all references e.g. references(1998ApJ...500..525S)' data-toggle="tooltip" data-field="operator-references">References(...)</button>
 
-                     <button class="btn btn-link btn-sm"  data-field="first-author">First Author</button>
 
-                     <button class="btn btn-link btn-sm"  data-field="title">Title</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="year">Year</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="bibstem">Publication</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="full">Fulltext</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="operator-trending">Trending(...)</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="operator-useful">Useful(...)</button>
-
-                     <button class="btn btn-link btn-sm"  data-field="operator-instructive">Instructive(...)</button>
                  </div>
              </div>
          </div>
@@ -36,7 +30,7 @@
                          </div>
                          <div class="dropdown-menu s-search-form-container" id="search-form-container"></div>
                      </div>
-                     <input type="text" class="form-control q" name="q" autofocus value={{currentQueryVal}}>
+                     <input type="text" class="form-control q" name="q" autofocus autocomplete="off" value={{currentQueryVal}}>
                      <i class="icon-clear s-clear-control"></i>
                   <span class="input-group-btn">
                        <button type="submit" class= "btn btn-primary search-submit s-search-submit" aria-label="submit"><i class="fa fa-search"></i></button>
@@ -46,7 +40,8 @@
                  <!-- /input-group -->
                  </div> <!-- /form-group-->
              </form>
-
-
-             </div>
+        </div>
+         <div class="s-num-found">
+          <span class="s-light-font description">Your search returned</span> <b><span class="num-found-container"></span></b><span class="s-light-font"> results</span>
+         </div>
        </div>

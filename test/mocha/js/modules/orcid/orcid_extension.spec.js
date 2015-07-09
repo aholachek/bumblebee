@@ -66,7 +66,7 @@ define([
       });
 
       afterEach(function (done) {
-        minsub.close();
+        minsub.destroy();
         var ta = $('#test');
         if (ta) {
           ta.empty();
@@ -101,6 +101,7 @@ define([
         var w = _getWidget();
 
         var oApi = minsub.beehive.getService('OrcidApi');
+        sinon.spy(w.widget, 'mergeADSAndOrcidData');
 
         oApi.updateOrcid = function(action, data) {
           expect(action).to.eql(expectedAction);
@@ -117,6 +118,8 @@ define([
         expect(w.widget.view.children.findByIndex(0).$el.find('.orcid-view').length).to.eql(0);
 
         w.widget.view.children.findByIndex(0).$el.find('.orcid-update').click();
+        expect(w.widget.mergeADSAndOrcidData.called).to.eql(true);
+
         expectedAction = 'delete';
         w.widget.view.children.findByIndex(0).$el.find('.orcid-delete').click();
 
@@ -144,6 +147,8 @@ define([
 
       it("when displaying a record, it can handle the 'pending' state", function(done) {
         var w = _getWidget();
+        var spy = sinon.spy();
+        w.widget.on('orcid-update-finished', spy);
 
         var oApi = minsub.beehive.getService('OrcidApi');
         var d = $.Deferred();
@@ -159,6 +164,7 @@ define([
 
         // widgets are in the 'loading' state
         expect(w.widget.view.children.findByIndex(1).$el.find('.s-orcid-loading').length).to.eql(1);
+        expect(spy.called).to.eql(false);
 
         // simulate the data has arrived
         d.resolve({
@@ -166,9 +172,93 @@ define([
           isCreatedByOthers: true
         });
 
-        // the widget is display orcid actions
+        // the widget displays orcid actions
         expect(w.widget.view.children.findByIndex(1).$el.find('.s-orcid-loading').length).to.eql(0);
         expect(w.widget.view.children.findByIndex(1).$el.find('.orcid-update').length).to.eql(1);
+        expect(spy.called).to.eql(true);
+
+        // now test errors
+        d = $.Deferred();
+        spy.reset();
+
+        minsub.publish(minsub.DISPLAY_DOCUMENTS, minsub.createQuery({
+          q: "star"
+        }));
+
+        // widgets are in the 'loading' state
+        expect(w.widget.view.children.findByIndex(1).$el.find('.s-orcid-loading').length).to.eql(1);
+        expect(spy.called).to.eql(false);
+
+        // simulate error
+        d.reject();
+
+        // the widget displays orcid actions
+        expect(w.widget.view.children.findByIndex(1).$el.find('.s-orcid-loading').length).to.eql(0);
+        expect(spy.called).to.eql(true);
+
+        // but the style is 'danger'
+        expect(w.widget.view.children.findByIndex(1).$el.find('button.btn-danger').length).to.eql(1);
+        done();
+      });
+
+      it("merges ADS data before sending them to orcid", function(done) {
+        var w = _getWidget();
+        var widget = w.widget;
+        widget.pubsub = sinon.spy();
+
+        var model = widget.model;
+        widget.mergeADSAndOrcidData(model);
+        expect(widget.pubsub.called).to.eql(false);
+
+        var uSpy = sinon.spy();
+        model.set('bibcode', 'foo');
+        var s = widget.beehive.getService;
+        widget.beehive.getService = function() {return {}};
+
+        widget.mergeADSAndOrcidData(model);
+        expect(widget.pubsub.called).to.eql(false);
+
+        model.set('bibcode', null);
+        model.set('identifier', 'foo');
+
+        widget.pubsub.publish = sinon.spy();
+        widget.mergeADSAndOrcidData(model);
+
+        expect(widget.pubsub.publish.called).to.eql(true);
+        expect(widget.pubsub.publish.lastCall.args[1].get('query').get('q')).to.eql(['identifier:foo']);
+
+
+        // test of the internal logic
+
+        widget.mergeADSAndOrcidData = function() {
+          var d = $.Deferred();
+          d.resolve(widget.model);
+          return d.promise();
+        };
+        widget.beehive.getService = function() {return {
+          updateOrcid: function() {
+            expect(model.get('orcid').pending).to.eql(true);
+            var d = $.Deferred();
+            d.resolve({});
+            return d.promise();
+          }
+        }};
+        widget.once('orcidAction:add', uSpy);
+
+        widget.onAllInternalEvents('childview:OrcidAction', null, {model: model, action: 'add'});
+        expect(model.get('orcid').actions.add).to.be.defined;
+        expect(uSpy.called).to.eql(true);
+
+        uSpy.reset();
+        widget.once('orcidAction:delete', uSpy);
+        model.attributes.source_name = 'external; NASA ADS';
+        widget.onAllInternalEvents('childview:OrcidAction', null, {model: model, action: 'delete'});
+        expect(model.attributes.source_name).to.eql('external');
+        expect(uSpy.called).to.eql(false); // when there is still something, keep the rec
+
+        model.attributes.source_name = 'NASA ADS';
+        widget.onAllInternalEvents('childview:OrcidAction', null, {model: model, action: 'delete'});
+        expect(uSpy.called).to.eql(true);
 
         done();
       });

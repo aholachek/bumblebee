@@ -223,16 +223,8 @@ define([
       return query;
     },
 
-    onClose: function () {
-      this.view.close();
-    },
-
-    getView: function () {
-      if (!this.view) {
-        throw new Error("This widget doesn't have a view");
-      } else {
-        return this.view
-      }
+    onDestroy: function () {
+      this.view.destroy();
     },
 
     /**

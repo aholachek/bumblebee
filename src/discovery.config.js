@@ -45,7 +45,11 @@ require.config({
           DynamicConfig: 'discovery.vars',
           HistoryManager: 'js/components/history_manager',
           MasterPageManager: 'js/page_managers/master',
-          AppStorage: 'js/components/app_storage'
+          AppStorage: 'js/components/app_storage',
+          RecaptchaManager : 'js/components/recaptcha_manager',
+          CSRFManager : "js/components/csrf_manager",
+          LibraryController : 'js/components/library_controller'
+
         },
         modules: {
           FacetFactory: 'js/widgets/facet/factory'
@@ -54,14 +58,22 @@ require.config({
       widgets: {
         LandingPage: 'js/wraps/landing_page_manager',
         SearchPage: 'js/wraps/results_page_manager',
-        DetailsPage: 'js/wraps/details_page_manager',
+        DetailsPage: 'js/wraps/abstract_page_manager/abstract_page_manager',
         AuthenticationPage: 'js/wraps/authentication_page_manager',
-        SettingsPage: 'js/wraps/user_settings_page_manager',
+        SettingsPage: 'js/wraps/user_settings_page_manager/user_page_manager',
+//        LibrariesPage: 'js/wraps/libraries_page_manager/libraries_page_manager',
+//        HomePage: 'js/wraps/home_page_manager/home_page_manager',
 
         Authentication: 'js/widgets/authentication/widget',
         UserSettings: 'js/widgets/user_settings/widget',
+        UserPreferences: 'js/widgets/preferences/widget',
 
+//        AllLibrariesWidget : 'js/widgets/libraries_all/widget',
+//        IndividualLibraryWidget : 'js/widgets/library_individual/widget',
+
+        BreadcrumbsWidget: 'js/widgets/filter_visualizer/widget',
         NavbarWidget: 'js/widgets/navbar/widget',
+        UserNavbarWidget: 'js/widgets/user_navbar/widget',
         AlertsWidget: 'js/widgets/alerts/widget',
         SearchWidget: 'js/widgets/search_bar/search_bar_widget',
         Results: 'js/widgets/results/widget',
@@ -89,18 +101,20 @@ require.config({
         RefereedFacet: 'js/wraps/refereed_facet',
         VizierFacet: 'js/wraps/vizier_facet',
         GraphTabs : 'js/wraps/graph_tabs',
+        FooterWidget : 'js/widgets/footer/widget',
 
         ShowAbstract: 'js/widgets/abstract/widget',
+        ShowGraphics: 'js/widgets/graphics/widget',
+        ShowGraphicsSidebar: 'js/wraps/sidebar-graphics-widget',
         ShowReferences: 'js/wraps/references',
         ShowCitations : 'js/wraps/citations',
         ShowCoreads : 'js/wraps/coreads',
-        ShowTableOfContents : 'js/wraps/table_of_contents',
-        //ShowSimilar : 'js/widgets/similar/widget',
+        //can't camel case because router only capitalizes first letter
+        ShowTableofcontents : 'js/wraps/table_of_contents',
         ShowResources : 'js/widgets/resources/widget',
-        //ShowRecommender : 'js/widgets/recommender/widget',
+        ShowRecommender : 'js/widgets/recommender/widget',
         ShowPaperMetrics: 'js/wraps/paper_metrics',
-
-        TOCWidget: 'js/page_managers/toc_widget'
+        ShowPaperExport : 'js/wraps/paper_export'
       },
       plugins: {}
       }
@@ -150,14 +164,17 @@ require.config({
     // for development use
     //'google-analytics': "//www.google-analytics.com/analytics_debug",
     'google-analytics': "//www.google-analytics.com/analytics",
-    'google-recaptcha' : '//www.google.com/recaptcha/api.js?&render=explicit',
+    'google-recaptcha' : '//www.google.com/recaptcha/api.js?&render=explicit&onload=onRecaptchaLoad',
     'persist-js': 'libs/persist-js/src/persist',
     'backbone-validation': 'libs/backbone-validation/backbone-validation',
     'backbone.stickit' : 'libs/backbone.stickit/backbone.stickit',
     // only for diagnostics/debugging/testing - wont get loaded otherwise
     'sprintf': 'libs/sprintf/sprintf',
     'chai': '../bower_components/chai/chai',
-    'sinon': '../bower_components/sinon/index'
+    'sinon': '../bower_components/sinon/index',
+    'zeroclipboard' : 'libs/zeroclipboard/ZeroClipboard',
+    'filesaver' : 'libs/FileSaver/FileSaver',
+    'select2' : 'libs/select2/select2'
 
   },
 
@@ -225,22 +242,29 @@ require.config({
 
   callback: function() {
     require(['hbs/handlebars'], function(Handlebars) {
+
       // register system-wide helper for handlebars
       // http://doginthehat.com.au/2012/02/comparison-block-helper-for-handlebars-templates/#comment-44
 
-      // {{#compare unicorns ponies operator="<"}}
-      // I knew it, unicorns are just low-quality ponies!
-      // {{/compare}}
-      Handlebars.registerHelper('compare', function (lvalue, operator, rvalue, options) {
-        var operators, result;
+      //eg  (where current is a variable): {{#compare current 1 operator=">"}}
+
+      Handlebars.registerHelper('compare', function (lvalue, rvalue, options) {
+        var operators, result, operator;
         if (arguments.length < 3) {
           throw new Error("Handlerbars Helper 'compare' needs 2 parameters");
         }
-        if (options === undefined) {
-          options = rvalue;
-          rvalue = operator;
+
+        if (options === undefined || !options.hash || !options.hash.operator) {
           operator = "===";
         }
+        else {
+          operator = options.hash.operator;
+        }
+        //it might be being rendered at the beginning,before values have been inserted, so ignore
+        if (lvalue === undefined || rvalue === undefined){
+          return
+        }
+
         operators = {
           '==': function (l, r) { return l == r; },
           '===': function (l, r) { return l === r; },
@@ -292,8 +316,7 @@ require.config({
           }
         }
       });
-    })
-
+    });
 
   }
 });

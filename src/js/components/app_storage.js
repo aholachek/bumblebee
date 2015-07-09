@@ -21,16 +21,21 @@ define([
 
       activate: function(beehive) {
         this.setBeeHive(beehive);
-        _.bindAll(this, "onPaperSelection");
+        _.bindAll(this, "onPaperSelection", "onBulkPaperSelection");
         var pubsub = beehive.getService('PubSub');
-        var key = pubsub.getPubSubKey();
-        pubsub.subscribe(key, pubsub.PAPER_SELECTION, this.onPaperSelection);
+        this.key = pubsub.getPubSubKey();
+        pubsub.subscribe(this.key, pubsub.PAPER_SELECTION, this.onPaperSelection);
+        pubsub.subscribe(this.key, pubsub.BULK_PAPER_SELECTION, this.onBulkPaperSelection);
+
+        this.pubsub = pubsub;
       },
 
       initialize: function() {
         var that = this;
         this.on('change:selectedPapers', function(model) {
-          that._updateNumSelected();
+          this._updateNumSelected();
+          if (this.pubsub)
+              this.pubsub.publish(this.key, this.pubsub.STORAGE_PAPER_UPDATE, this.getNumSelectedPapers());
         });
       },
 
@@ -49,6 +54,10 @@ define([
         this.set('currentQuery', apiQuery);
       },
 
+      setCurrentNumFound : function(numFound){
+        this.set("numFound", numFound);
+      },
+
       getCurrentQuery: function() {
         return this.get('currentQuery');
       },
@@ -64,11 +73,15 @@ define([
        * @returns {*}
        */
       hasSelectedPapers: function() {
-        return this.has('selectedPapers');
+        return !!_.keys(this.get('selectedPapers')).length;
       },
 
       getSelectedPapers: function() {
         return _.keys(this.get('selectedPapers') || {});
+      },
+
+      clearSelectedPapers : function(){
+         this.set("selectedPapers", {});
       },
 
       addSelectedPapers: function(identifiers) {
@@ -133,6 +146,10 @@ define([
         }
       },
 
+      onBulkPaperSelection : function(bibs){
+        this.addSelectedPapers(bibs);
+      },
+
       //this is used by the auth and user settings widgets
       setConfig : function(conf){
         this.set("dynamicConfig", conf);
@@ -147,6 +164,7 @@ define([
         isPaperSelected: 'isPaperSelected',
         hasSelectedPapers: 'hasSelectedPapers',
         getSelectedPapers: 'getSelectedPapers',
+        clearSelectedPapers: 'clearSelectedPapers',
         getCurrentQuery: 'getCurrentQuery',
         hasCurrentQuery: 'hasCurrentQuery',
         getConfigCopy : 'get read-only copy of dynamic config',

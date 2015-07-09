@@ -35,7 +35,19 @@ define([
         ListOfThingsWidget.prototype.initialize.apply(this, arguments);
         //now adjusting the List Model
         this.view.template = ContainerTemplate;
-        this.view.model.set({"mainResults": true}, {silent : true});
+
+        this.view.model.defaults =  function () {
+          return {
+            mainResults: true,
+            title : undefined,
+            //assuming there will always be abstracts
+            showAbstract: "closed",
+            //often they won't exist
+            showHighlights: false,
+            pagination: true
+          }
+        };
+        this.model.set(this.model.defaults(), {silent : true});
         this.listenTo(this.collection, "reset", this.checkDetails);
       },
 
@@ -50,11 +62,12 @@ define([
       activate: function (beehive) {
         this.setBeeHive(beehive);
         this.pubsub = beehive.Services.get('PubSub');
-        _.bindAll(this, 'dispatchRequest', 'processResponse', 'onUserAnnouncement');
+        _.bindAll(this, 'dispatchRequest', 'processResponse', 'onUserAnnouncement', 'onStoragePaperUpdate', 'onCustomEvent');
         this.pubsub.subscribe(this.pubsub.INVITING_REQUEST, this.dispatchRequest);
         this.pubsub.subscribe(this.pubsub.DELIVERING_RESPONSE, this.processResponse);
-
         this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, this.onUserAnnouncement);
+        this.pubsub.subscribe(this.pubsub.STORAGE_PAPER_UPDATE, this.onStoragePaperUpdate);
+        this.pubsub.subscribe(this.pubsub.CUSTOM_EVENT, this.onCustomEvent);
       },
 
       onUserAnnouncement: function(key, val){
@@ -70,6 +83,13 @@ define([
         }
       },
 
+      onCustomEvent : function(event){
+        if (event == "add-all-on-page"){
+          var bibs = this.collection.pluck("bibcode");
+          this.pubsub.publish(this.pubsub.BULK_PAPER_SELECTION, bibs);
+        }
+      },
+
       dispatchRequest: function(apiQuery) {
           this.reset();
           ListOfThingsWidget.prototype.dispatchRequest.call(this, apiQuery);
@@ -79,21 +99,17 @@ define([
         var hExists = false;
         for (var i=0; i<this.collection.models.length; i++) {
           var m = this.collection.models[i];
-          if (m.attributes.details && m.attributes.details.highlights) {
-            hExists = true;
-            break;
-          }
-          if (m.attributes.abstract) {
+          if (m.attributes.highlights) {
             hExists = true;
             break;
           }
         }
 
         if (hExists) {
-          this.model.set("showDetails", 'closed'); // default is to be closed (openable)
+          this.model.set("showHighlights", 'open'); // default is to be open
         }
         else {
-          this.view.model.set("showDetails", false); // will make it non-clickable
+          this.view.model.set("showHighlights", false); // will make it non-clickable
         }
       },
 
@@ -112,7 +128,6 @@ define([
         //any preprocessing before adding the resultsIndex is done here
         docs = _.map(docs, function (d) {
           d.identifier = d.bibcode;
-          d.details = {};
           var h = {};
 
           if (_.keys(highlights).length) {
@@ -157,10 +172,8 @@ define([
           }
 
           if (h.highlights && h.highlights.length > 0){
-            _.extend(d.details, h);
+            d.highlights = h.highlights;
           }
-
-          d.details.pub = d.pub;
 
           if(d["[citations]"] && d["[citations]"]["num_citations"]>0){
             d.num_citations = self.formatNum(d["[citations]"]["num_citations"]);
@@ -171,9 +184,8 @@ define([
           }
 
           d.formattedDate = d.pubdate ? self.formatDate(d.pubdate, {format: 'yy/mm', missing: {day: 'yy/mm', month: 'yy'}}) : undefined;
-          d.details.abstract = d.abstract;
-          d.details.shortAbstract = d.abstract? self.shortenAbstract(d.abstract) : undefined;
 
+          d.shortAbstract = d.abstract? self.shortenAbstract(d.abstract) : undefined;
 
           if (appStorage && appStorage.isPaperSelected(d.identifier)) {
             d.chosen = true;
@@ -184,6 +196,26 @@ define([
 
         docs = this.parseLinksData(docs);
         return docs;
+      },
+
+      onStoragePaperUpdate : function(){
+        if (this.hasBeeHive() && this.getBeeHive().hasObject('AppStorage')) {
+          appStorage = this.getBeeHive().getObject('AppStorage');
+        }
+        this.collection.each(function(m){
+          if (appStorage.isPaperSelected(m.get("identifier"))) {
+            m.set("chosen", true);
+          } else {
+            m.set("chosen", false);
+          }
+        });
+        this.hiddenCollection.each(function(m){
+          if (appStorage.isPaperSelected(m.get("identifier"))) {
+            m.set("chosen", true);
+          } else {
+            m.set("chosen", false);
+          }
+        });
       }
     });
 
@@ -191,6 +223,5 @@ define([
     _.extend(ResultsWidget.prototype, Formatter);
     _.extend(ResultsWidget.prototype, PapersUtilsMixin, Dependon.BeeHive);
     return OrcidExtension(ResultsWidget);
-    //return ResultsWidget;
 
   });

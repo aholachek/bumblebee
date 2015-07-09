@@ -11,6 +11,7 @@ define(['underscore',
     'cache',
     'js/components/generic_module',
     'js/mixins/dependon',
+    'js/mixins/feedback_handling',
     'js/components/api_request',
     'js/components/api_response',
     'js/components/api_query_updater',
@@ -24,7 +25,8 @@ define(['underscore',
     $,
     Cache,
     GenericModule,
-    Mixins,
+    Dependon,
+    FeedbackMixin,
     ApiRequest,
     ApiResponse,
     ApiQueryUpdater,
@@ -39,7 +41,7 @@ define(['underscore',
 
       initialize: function(options) {
         options = options || {};
-        this._cache = this._getNewCache(options.cache);
+        this._cache = null;
         this.debug = options.debug || false;
         this.queryUpdater = new ApiQueryUpdater('QueryMediator');
         this.failedRequestsCache = this._getNewCache();
@@ -50,6 +52,10 @@ define(['underscore',
         this.longDelayInMs = _.isNumber(options.longDelayInMs) ? options.longDelayInMs: 100;
         this.monitoringDelayInMs = _.isNumber(options.monitoringDelayInMs) ? options.monitoringDelayInMs : 200;
         this.mostRecentQuery = new ApiQuery();
+      },
+
+      activateCache: function(options) {
+        this._cache = this._getNewCache((options || {}).cache);
       },
 
       _getNewCache: function(options) {
@@ -96,6 +102,11 @@ define(['underscore',
            return
         }
 
+        //we have to clear selected records in app storage here too
+        if ( this.getBeeHive().getObject("AppStorage")){
+          this.getBeeHive().getObject("AppStorage").clearSelectedPapers();
+        }
+
         this.mostRecentQuery = apiQuery;
 
         if (this.debug) {
@@ -110,7 +121,6 @@ define(['underscore',
           return;
         }
         var ps = this.getBeeHive().getService('PubSub');
-
 
         if (this.__searchCycle.running && this.__searchCycle.waiting && _.keys(this.__searchCycle.waiting)) {
           console.error('The previous search cycle did not finish, and there already comes the next!');
@@ -173,7 +183,6 @@ define(['underscore',
         if (!this.hasBeeHive()) return;
 
         cycle.running = true;
-
 
         var data;
         var beehive = this.getBeeHive();
@@ -363,10 +372,17 @@ define(['underscore',
         if (!(apiRequest instanceof ApiRequest)) {
           throw new Error('Sir, I belive you forgot to send me a valid ApiRequest!');
         }
+        else if (!senderKey){
+          throw new Error("Request executed, but no widget id provided!");
+        }
+
         return this._executeRequest(apiRequest, senderKey);
       },
 
       _executeRequest: function(apiRequest, senderKey) {
+        // show the loading view for the widget
+        this._makeWidgetSpin(senderKey.getId());
+
         var ps = this.getBeeHive().Services.get('PubSub');
         var api = this.getBeeHive().Services.get('Api');
 
@@ -387,6 +403,10 @@ define(['underscore',
           var self = this;
 
           if (resp && resp.promise) { // we have already created ajax request
+
+            if (resp.state() == 'resolved') {
+
+            }
 
             resp.done(function() {
               self._cache.put(requestKey, arguments);
@@ -413,7 +433,7 @@ define(['underscore',
           else { // create a new query
 
             var promise = api.request(apiRequest, {
-              done: function() {
+                done: function() {
                 self._cache.put(requestKey, arguments);
                 self.onApiResponse.apply(this, arguments);
               },
@@ -437,13 +457,12 @@ define(['underscore',
 
       },
 
-
       onApiResponse: function(data, textStatus, jqXHR ) {
         var qm = this.qm;
 
         // TODO: check the status responses
 
-        var response = (data.responseHeader && data.responseHeader.QTime) ? new ApiResponse(data) : new JsonResponse(data);
+        var response = (data.responseHeader && data.responseHeader.params) ? new ApiResponse(data) : new JsonResponse(data);
 
         response.setApiQuery(this.request.get('query'));
 
@@ -465,6 +484,7 @@ define(['underscore',
       },
 
       onApiRequestFailure: function( jqXHR, textStatus, errorThrown ) {
+
         var qm = this.qm;
         var query = this.request.get('query');
         if (qm.debug) {
@@ -575,6 +595,6 @@ define(['underscore',
 
     });
 
-    _.extend(QueryMediator.prototype, Mixins.BeeHive);
+    _.extend(QueryMediator.prototype, Dependon.BeeHive, FeedbackMixin);
     return QueryMediator;
   });

@@ -74,7 +74,7 @@ define([
 
       template: filterContainerTemplate,
 
-      itemViewContainer: ".dropdown-menu",
+      childViewContainer: ".dropdown-menu",
 
       events: {
         "click .apply-filter": "initiateFilter",
@@ -417,6 +417,7 @@ define([
       },
 
       changeRows : function(e) {
+        e.preventDefault();
         var num = parseInt(this.$(".network-rows").val());
         this.$(".network-metadata").html(loadingTemplate);
         if (num){
@@ -745,7 +746,7 @@ define([
 
         //zoom behavior
         var zoom = d3.behavior.zoom()
-          .scaleExtent([1, 3])
+          .scaleExtent([.7, 3])
           .on("zoom", zoomed);
 
         function zoomed() {
@@ -1069,7 +1070,7 @@ define([
 
           //show link layer
           var interval;
-          d3.select(".link-container").style("display", "block")
+          d3.select(this.$(".link-container")[0]).style("display", "block")
             .selectAll(".link")
             .call(function(selection){
               interval = 3000/selection[0].length;
@@ -1079,9 +1080,8 @@ define([
         }
         else {
           //hide it
-
           this.model.set("selectedEntity", this.model.get("cachedEntity"));
-          d3.select(".link-container").style("display", "none");
+          d3.select(this.$(".link-container")[0]).style("display", "none");
         }
       },
 
@@ -1237,6 +1237,10 @@ define([
         var query = new ApiQuery();
         query.set("q", newQuery);
         query.set("rows", this.initialRowsRequest);
+        //default setting sort to "date desc" since that is presumably what users will be used to
+        //this isn't perfect (it might override the original query's sorted value)
+        //but probably no one will notice
+         query.set("sort", "date desc");
 
         var request = new ApiRequest({
           target: Marionette.getOption(this, "endpoint"),
@@ -1245,7 +1249,6 @@ define([
 
         //update the current widget query
         this.setCurrentQuery(query);
-
         this.pubsub.publish(this.pubsub.EXECUTE_REQUEST, request);
 
       },
@@ -1265,7 +1268,6 @@ define([
 
         //clear the "cachedQuery" because it's a new search cycle
         this.model.set("cachedQuery", undefined);
-
         this._originalQuery = query;
         this.setCurrentQuery(query);
       },
@@ -1352,7 +1354,7 @@ define([
         }).value();
 
         connector = (groupAuthorNames.length && authorNames.length) ? " OR " : "";
-        finalFQString = authorNames.join(" OR ") + connector + groupAuthorNames;
+        finalFQString = authorNames.join(" OR ") + connector + groupAuthorNames.join(" OR ");
 
         if (!finalFQString) {
           return

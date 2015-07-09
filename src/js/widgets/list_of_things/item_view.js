@@ -17,20 +17,12 @@ define([
 
     var ItemView = Marionette.ItemView.extend({
       tagName: "li",
-      className: function() {
-        if (this.model.get('chosen')) {
-          return "col-sm-12 s-display-block chosen";
-        }
-        return "col-sm-12 s-display-block";
-      },
       template: ItemTemplate,
-
       constructor: function (options) {
         var self = this;
         if (options) {
           _.defaults(options, _.pick(this, ['model', 'collectionEvents', 'modelEvents']));
         }
-
         _.bindAll(this, 'resetToggle');
 
         return Marionette.ItemView.prototype.constructor.apply(this, arguments);
@@ -49,7 +41,6 @@ define([
 
       events: {
         'change input[name=identifier]': 'toggleSelect',
-        'click .details-control' : "toggleDetails",
         'mouseenter .letter-icon': "showLinks",
         'mouseleave .letter-icon': "hideLinks",
         'click .letter-icon': "pinLinks",
@@ -61,8 +52,10 @@ define([
 
       modelEvents: {
         "change:visible": 'render',
-        "change:showDetails" : 'render',
-        "change:orcid": 'render'
+        "change:showAbstract" : 'render',
+        "change:showHighlights" : 'render',
+        "change:orcid": 'render',
+        "change:chosen": 'render'
       },
 
       collectionEvents: {
@@ -81,15 +74,13 @@ define([
       },
 
       toggleSelect: function () {
+        var isChosen = !this.model.get('chosen');
 
         this.trigger('toggleSelect',
-          {
-            selected: !this.model.get('chosen'),
+          {selected: isChosen,
             data : this.model.attributes }
         );
-
-        this.$el.toggleClass("chosen");
-        this.model.set('chosen', this.model.get('chosen') ? false : true);
+        this.model.set("chosen", isChosen);
       },
 
       resetToggle: function(){
@@ -110,11 +101,6 @@ define([
           this.model.set('chosen', false);
           $checkbox.prop('checked', false);
         }
-      },
-
-      toggleDetails : function(){
-        var newValue = this.model.get("showDetails") ? false : true;
-        this.model.set("showDetails", newValue);
       },
 
       /*

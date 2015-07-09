@@ -1,13 +1,15 @@
 /**
  * Infinitely growing view of items
  *
+ * ( **** NOT CURRENTLY USED ANYWHERE *** )
+ *
  */
 
 define([
-  'marionette',
-  'backbone',
-  'hbs!./templates/expanding-item-template',
-  'hbs!./templates/expanding-results-container-template',
+    'marionette',
+    'backbone',
+    'hbs!./templates/expanding-item-template',
+    'hbs!./templates/expanding-results-container-template',
   ],
 
   function (Marionette,
@@ -58,9 +60,9 @@ define([
 
 
       className: "list-of-things",
-      itemView: ItemView,
+      childView: ItemView,
 
-      itemViewOptions: function (model, index) {
+      childViewOptions: function (model, index) {
         //if this is the initial round, hide fetchnum - displaynum
         if (this.paginator.getCycle() <= 1 && (index < this.displayNum)) {
           return {}
@@ -73,7 +75,7 @@ define([
         }
       },
 
-      itemViewContainer: ".results-list",
+      childViewContainer: ".results-list",
       events: {
         "click .load-more-results": "fetchMore",
         "click .show-details": "showDetails"

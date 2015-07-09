@@ -62,11 +62,12 @@ define([
           options.collection = new PaginatedCollection();
         }
         if (!options.view) {
+          //operator instructs view to show a link that has citations:(bibcode) or something similar
           if (options.model) {
-            options.view = new PaginatedView({collection: options.collection, model: options.model});
+            options.view = new PaginatedView({collection: options.collection, model: options.model, operator: this.operator, queryOperator : this.queryOperator });
           }
           else {
-            options.view = new PaginatedView({collection: options.collection});
+            options.view = new PaginatedView({collection: options.collection, operator: this.operator, queryOperator : this.queryOperator });
           }
         }
         options.model = options.view.model;
@@ -111,9 +112,7 @@ define([
         this.setCurrentQuery(q);
 
         var docs = this.extractDocs(apiResponse);
-
         var pagination = this.getPaginationInfo(apiResponse, docs);
-
         docs = this.processDocs(apiResponse, docs, pagination);
 
         if (docs && docs.length) {
@@ -132,8 +131,7 @@ define([
         this.trigger('page-manager-event', 'widget-ready',
           {numFound: apiResponse.has("response.numFound")
             ? apiResponse.get("response.numFound")
-            : this.hiddenCollection.length,
-            widget: this});
+            : this.hiddenCollection.length});
       },
 
       extractDocs: function(apiResponse) {
@@ -148,7 +146,6 @@ define([
       getPaginationInfo: function(apiResponse, docs) {
         var q = apiResponse.getApiQuery();
 
-
         // this information is important for calcullation of pages
         var numFound = apiResponse.get("response.numFound");
         var perPage =  this.model.get('perPage') || (q.has("rows") ? q.get('rows')[0] : 10);
@@ -159,7 +156,6 @@ define([
 
         // compute which documents should be made visible
         var showRange = [page*perPage, ((page+1)*perPage)-1];
-
 
         // means that we were fetching the missing documents (to fill gaps in the collection)
         var fillingGaps = q.has('__fetch_missing');
@@ -173,7 +169,6 @@ define([
         // compute paginations (to be inserted into navigation)
         var numAround = this.model.get('numAround') || 2;
         var pageData = this._getPageDataDatastruct(q, page, numAround, perPage, numFound);
-
 
         //should we show a "back to first page" button?
         var showFirst = (_.pluck(pageData, "p").indexOf(1) !== -1) ? false : true;
@@ -190,8 +185,9 @@ define([
       },
 
       _getPageDataDatastruct: function(q, page, numAround, perPage, numFound) {
-        var pageData = {};
+
         var pageNums = PaginationMixin.generatePageNums(page, numAround, perPage, numFound);
+
         if (pageNums.length > 1) { //only render pagination controls if there are more pages
           //now, finally, generate links for each page number
           var pageData = _.map(pageNums, function (n) {
@@ -210,15 +206,13 @@ define([
         return pageData;
       },
 
-
       processDocs: function(apiResponse, docs, paginationInfo) {
         if (!apiResponse.has('response')) return [];
         var params = apiResponse.get("response");
         var start = params.start || (paginationInfo.start || 0);
         docs = PaginationMixin.addPaginationToDocs(docs, start);
-        return docs
+        return docs;
       },
-
 
       defaultQueryArguments: {
         fl: 'id',
@@ -226,13 +220,12 @@ define([
         start : 0
       },
 
-
       updatePagination: function(options) {
         var perPage = options.perPage || this.model.get('perPage');
         var page = _.isNumber(options.page) ? options.page : null;
         var numFound = options.numFound || this.model.get('numFound');
         var numAround = options.numAround || this.model.get('numAround') || 2;
-        var currentQuery = options.currentQuery || this.model.get('currentQuery');
+        var currentQuery = options.currentQuery || this.model.get('currentQuery') || new ApiQuery();
 
         // click to go to another 'page' will skip this
         if (page === null && this.collection.length) {
@@ -287,7 +280,7 @@ define([
             q.set('rows', perPage);
             var req = this.composeRequest(q);
 
-            console.log('we have to retrieve new data' + JSON.stringify(arg1));
+            //console.log('we have to retrieve new data' + JSON.stringify(arg1));
 
             if (req) {
               this.pubsub.publish(this.pubsub.EXECUTE_REQUEST, req);
@@ -295,7 +288,7 @@ define([
           }, this);
 
         }
-        else if (ev == "itemview:toggleSelect") {
+        else if (ev == "childview:toggleSelect") {
           this.pubsub.publish(this.pubsub.PAPER_SELECTION, arg2.data.identifier);
         }
       },
@@ -303,10 +296,7 @@ define([
       reset: function() {
         this.collection.reset();
         this.hiddenCollection.reset();
-        this.model.set({
-          showDetails : false,
-          pageData: {}
-        })
+        this.model.set(this.model.defaults())
       }
 
     });

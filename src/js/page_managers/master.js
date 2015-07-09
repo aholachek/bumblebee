@@ -15,16 +15,15 @@ define([
   'js/page_managers/controller',
   'hbs!./templates/aria-announcement',
   'hbs!./templates/master-page-manager',
-  'marionette',
-  './controller'
+  'marionette'
+
 ], function(
   BaseWidget,
   GenericModule,
   PageManagerController,
   AriaAnnouncementTemplate,
   MasterPageManagerTemplate,
-  Marionette,
-  PageManagerController
+  Marionette
   ){
 
   var WidgetData = Backbone.Model.extend({
@@ -96,17 +95,17 @@ define([
 
           if (this.notFirst && !within){
             //only show transitions for subsequent pages
-            this.$el.append(res.$el.addClass("fade-in"));
+            this.$(".dynamic-container").append(res.$el.addClass("fade-in"));
           }
           else if (!within) {
-            this.$el.append(res.el);
+            this.$(".dynamic-container").append(res.el);
             this.notFirst = true;
           }
           model.attributes.numAttach += 1;
 
           //scroll up automatically
           window.scrollTo(0,0);
-          //fix the search bar back into its default spot
+          //and fix the search bar back in its default spot
           $(".s-search-bar-full-width-container").removeClass("s-search-bar-motion");
           $(".s-quick-add").removeClass("hidden");
         }

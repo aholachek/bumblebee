@@ -6,14 +6,23 @@
  */
 
 define([
-    'underscore'
+    'underscore',
+    'js/components/api_query',
+    'js/components/api_request',
+    'js/components/api_query_updater',
+    'js/components/api_targets'
   ],
 
   function (
-    _
+    _,
+    ApiQuery,
+    ApiRequest,
+    ApiQueryUpdater,
+    ApiTargets
     ) {
 
     return function(WidgetClass) {
+      var queryUpdater = new ApiQueryUpdater('OrcidExtension');
       var processDocs = WidgetClass.prototype.processDocs;
       var activate = WidgetClass.prototype.activate;
       var onAllInternalEvents = WidgetClass.prototype.onAllInternalEvents;
@@ -76,11 +85,15 @@ define([
           }
 
           var recInfo;
+          var counter = 0;
 
           _.each(docs, function(d) {
             recInfo = orcidApi.getRecordInfo(d);
             if (recInfo.state() == 'pending') {
+              counter += 1;
               recInfo.done(function(rInfo) {
+                counter -= 1;
+
                 //console.log('pending: ' + d.bibcode + JSON.stringify(rInfo));
                 var actions = self._getOrcidInfo(rInfo);
                 // get the model for this document
@@ -89,6 +102,29 @@ define([
                   if (model) {
                     model.set('orcid', actions); // if not found, we can ignore this update (the view changed already)
                   }
+                }
+
+                if (counter == 0) {
+                  self.trigger('orcid-update-finished');
+                }
+              });
+              recInfo.fail(function(data) {
+                counter -= 1;
+
+                // very likely, the request timed out
+                // keep the actions and let user redo the operation
+                if (self.collection && self.collection.findWhere) {
+                  var model = self.collection.findWhere({bibcode: d.bibcode});
+                  if (model) {
+                    var o = _.extend({}, model.get('orcid') || {});
+                    delete o.pending;
+                    o.error = 'Orcid API reported error';
+                    model.set('orcid', o); //TODO: distinguish different types of errors
+                  }
+                }
+
+                if (counter == 0) {
+                  self.trigger('orcid-update-finished');
                 }
               });
               d.orcid = {pending: true};
@@ -103,34 +139,111 @@ define([
                   d.identifier = rInfo.bibcode;
               });
             }
-
           });
+
+          if (counter == 0) {
+            self.trigger('orcid-update-finished', docs);
+          }
+
           return docs;
         };
 
-      WidgetClass.prototype.processDocs = function() {
+      WidgetClass.prototype.processDocs = function(apiResponse, docs, pagination) {
         var docs = processDocs.apply(this, arguments);
         var user = this.beehive.getObject('User');
         if (user && user.isOrcidModeOn()){
-          return this.addOrcidInfo(docs);
+          var result = this.addOrcidInfo(docs);
+          if (pagination.numFound != result.length) {
+            _.extend(pagination, this.getPaginationInfo(apiResponse, docs));
+          }
+          return result;
         }
         return docs;
       };
 
+      WidgetClass.prototype.mergeADSAndOrcidData = function(model) {
+        var self = this;
+        var api = self.beehive.getService('Api');
+        var promise = $.Deferred();
+        if (!(api && self.pubsub)) {
+          promise.resolve(model);
+          return promise.promise();
+        }
+
+        if (model.get('bibcode')) { // no need to do anything
+          promise.resolve(model);
+          return promise.promise();
+        }
+
+        if (model.get('identifier')) {
+          var q, req;
+          q = new ApiQuery({'q': 'identifier:' + queryUpdater.quoteIfNecessary(model.get('identifier')),
+            'fl': 'title,abstract,bibcode,author,keyword,id,links_data,property,pub,aff,email,volume,pubdate,doi'});
+          req = new ApiRequest({query: q, target: ApiTargets.SEARCH, options: {
+            done: function (resp) {
+              if (resp.response && resp.response.docs && resp.response.docs[0]) {
+                var sourceName = model.attributes.source_name || 'unknown';
+                sourceName += '; NASA ADS';
+
+                model.attributes = _.extend(model.attributes, resp.response.docs[0], {source_name: sourceName});
+              }
+              promise.resolve(model);
+            },
+            fail: function () {
+              promise.fail();
+            }
+          }});
+        }
+        else {
+          promise.resolve(model);
+        }
+
+        self.pubsub.publish(self.pubsub.EXECUTE_REQUEST, req);
+        return promise.promise();
+      };
+
       WidgetClass.prototype.onAllInternalEvents = function(ev, arg1, arg2) {
-        if (ev == 'itemview:OrcidAction') {
+        if (ev == 'childview:OrcidAction') {
           var self = this;
           var data = arg2;
           var orcidApi = this.beehive.getService('OrcidApi');
 
           var update = function(action, model) {
-            var oldOrcidInfo = model.get('orcid');
-            model.set('orcid', {pending: true});
-            orcidApi.updateOrcid(action, data.model.attributes)
-              .done(function(recInfo) {
-                model.set('orcid', self._getOrcidInfo(recInfo));
-                self.trigger('orcidAction:' + action, model);
+
+            self.mergeADSAndOrcidData(model)
+              .done(function(model) {
+                var oldOrcidInfo = _.clone(model.get('orcid') || {});
+                model.set('orcid', {pending: true});
+                orcidApi.updateOrcid(action, data.model.attributes)
+                  .done(function(recInfo) {
+                    if (action == 'delete') {
+                      var parts = model.attributes.source_name.split('; ');
+                      if (parts.indexOf('NASA ADS') > -1) {
+                        parts.splice(parts.indexOf('NASA ADS'), 1);
+                      }
+                      model.attributes.source_name = parts.join('; ');
+                    }
+                    else {
+                      model.set(model.attributes, {silent: true});
+                    }
+                    model.set('orcid', self._getOrcidInfo(recInfo));
+
+                    if (action == 'delete' && model.get('source_name')) {
+                      return; // do nothing, we want to keep seeing the record
+                    }
+                    self.trigger('orcidAction:' + action, model);
+                  })
+                  .fail(function() {
+                    model.set('orcid', _.extend(oldOrcidInfo, {pending: null, error: 'Error updaing record, please retry'}));
+                  })
               })
+              .fail(function() {
+                console.log('Failed merging data, we need to handle this error');
+                var o = _.clone(model.get('orcid'));
+                o.error = 'Failed merging ORCID data with ADS data';
+                delete o.pending;
+                model.set('orcid', o);
+              });
           };
 
           var action = data.action;
@@ -144,7 +257,7 @@ define([
             update('update', data.model);
           }
           else if(action.indexOf('view') > -1) {
-            console.log('Viewing not implemented yet');
+            console.log('Viewing of individual records not implemented (by ORCID)');
           }
           else if(action.indexOf('login') > -1) {
             orcidApi.signIn();

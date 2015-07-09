@@ -10,6 +10,7 @@ define([
     'js/components/api_query',
     'js/components/api_feedback',
     'js/mixins/hardened',
+    'js/components/json_response'
   ],
   function(
     _,
@@ -20,7 +21,8 @@ define([
     ApiResponse,
     ApiQuery,
     ApiFeedback,
-    Hardened
+    Hardened,
+    JsonResponse
     ) {
 
     var Api = GenericModule.extend({
@@ -86,21 +88,29 @@ define([
     Api.prototype.request = function(request, options) {
 
       options = _.extend({}, options, request.get('options'));
+      
+      var data,
+          self = this,
+          query = request.get('query');
 
-      var self = this,
-        data,
-       query = request.get('query');
       if (query && !(query instanceof ApiQuery)) {
         throw Error("Api.query must be instance of ApiQuery");
       }
 
-      //can pass in query parameter (instance of ApiQuery) or just pass data directly in the data parameter
-      //if you pass in an api query, it overrides data, otherwise just pass in data for the ajax request as expected
-      if (query){
+      if (query) {
         data = options.contentType === "application/json" ? JSON.stringify(query.toJSON()) : query.url();
       }
 
-      var u = this.url + (request.get('target') || '');
+      var target = request.get('target') || '';
+
+      var u;
+      if (target.indexOf('http') > -1) {
+        u = target;
+      }
+      else {
+        u = this.url + ((target.length > 0 && target.indexOf('/') == 0) ? target : (target ? '/' + target : target));
+      }
+
       u = u.substring(0, this.url.length-2) + u.substring(this.url.length-2, u.length).replace('//', '/');
 
       if (!u) {
@@ -119,7 +129,7 @@ define([
         cache: true, // do not generate _ parameters (let browser cache responses),
         //need this so that cross domain cookies will work!
         xhrFields: {
-          withCredentials: true
+          withCredentials: true // TODO: remove this (must be used only by certain widgets!!!)
         }
       };
 

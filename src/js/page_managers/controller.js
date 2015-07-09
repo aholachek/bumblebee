@@ -103,8 +103,10 @@ define([
         }
         else {
           this.hideAll();
-          // show just those that are requested
-          _.each(arguments, function(widgetName) {
+
+          // show just those that are requested + always show alerts widget
+          var args = [].slice.apply(arguments);
+          _.each(args, function(widgetName) {
             if (self.widgets[widgetName]) {
               var widget = self.widgets[widgetName];
 
@@ -136,12 +138,16 @@ define([
           });
         }
 
+        this.triggerMethod("show");
+
         return this.view;
       },
 
       hideAll: function() {
         // hide all widgets that are under our control
         _.each(this.widgets, function(w) {
+          if (w.noDetach)
+              return
           if ('detach' in w && _.isFunction(w.detach)) {
             w.detach();
           }
@@ -171,14 +177,13 @@ define([
 
       /**
        * broadcast the event to all other managed widgets
+       * (call trigger on them)
        */
       broadcast: function(){
         var args = arguments;
-        var self = this;
-        _.each(_.keys(self.widgets), function(w) {
-          var widget = self.widgets[w];
+        _.each(this.widgets, function(widget, widgetName) {
           widget.trigger.apply(widget, args);
-        });
+        }, this);
       }
 
     });

@@ -21,6 +21,16 @@
 }
 
 
+//for columns
+.no-right-padding {
+  padding-right: 0;
+}
+
+
+.s-special-font {
+  font-family: "Montserrat", "Helvetica Neue", sans-serif
+}
+
 
 .s-display-block {
   display : block;
@@ -36,8 +46,9 @@
 }
 
 .s-large-close {
+  background-color: @body-bg;
   font-weight: bold;
-  font-size: 4.5em;
+  font-size: 4em;
   display: inline-block;
   color: @text-color;
   width: 1.2em;
@@ -50,13 +61,12 @@
   float: right;
   cursor: pointer;
   position:relative;
-  .lh-transition(all, .5s);
   opacity: .8;
-  margin-top: 10px;
 
   &:hover {
+    border: 1px solid @gray;
     .lh-box-shadow(0px 0px 4px darken(@default-box-shadow-color, 10%));
-    opacity: .8
+    opacity: 1
   }
 }
 
@@ -65,7 +75,7 @@
 }
 
 .s-darker-background {
-  height: 100%;
+  min-height: 100%;
   background-color: @darker-background;
   overflow-y: hidden;
 }
@@ -103,6 +113,9 @@
 }
 
 //loading template
+//in order for this to work, the parent must be relatively positioned!!!
+//so all widgets that need a loading template must have a relatively positioned
+//outer element
 
 .s-loading {
   opacity: 1;
@@ -118,7 +131,7 @@
     .fa;
     .fa-pulse;
     .fa-2x;
-    color: lighten(@brand-info, 10%);
+    color: lighten(@brand-primary-faded, 10%);
     content : @fa-var-spinner;
     position: absolute;
     top: 50%;
@@ -134,7 +147,7 @@
   &:before{
     .fa;
     .fa-pulse;
-    color: lighten(@brand-info, 10%);
+    color: lighten(@brand-primary-faded, 10%);
     content : @fa-var-spinner;
     position: absolute;
     top: 50%;
@@ -159,7 +172,7 @@
       .fa;
       .fa-spin;
       .fa-2x;
-      color: @brand-info;
+      color: lighten(@brand-primary-faded, 10%);
       content : @fa-var-cog;
       position: absolute;
       top: 10%;
@@ -197,4 +210,18 @@
 
 .s-light-font {
   font-weight: 300;
+}
+
+
+.s-spacer-top-large {
+  margin-top: 40px;
+}
+
+.s-spacer-top {
+  margin-top: 20px;
+}
+
+.s-divider-bottom {
+  border-bottom: 1px solid darken(@gray-lighter, 5%);
+  margin-bottom: 5px;
 }

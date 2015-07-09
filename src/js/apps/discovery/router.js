@@ -7,7 +7,8 @@ define([
     'js/components/api_feedback',
     'js/components/api_request',
     'js/components/api_targets',
-    'js/mixins/api_access'
+    'js/mixins/api_access',
+    'js/components/api_query_updater'
 
   ],
   function (
@@ -19,7 +20,8 @@ define([
     ApiFeedback,
     ApiRequest,
     ApiTargets,
-    ApiAccessMixin
+    ApiAccessMixin,
+    ApiQueryUpdater
 
     ) {
 
@@ -30,6 +32,7 @@ define([
       initialize : function(options){
         options = options || {};
         this.history = options.history;
+        this.queryUpdater = new ApiQueryUpdater('Router');
       },
 
       activate: function (beehive) {
@@ -43,12 +46,17 @@ define([
       routes: {
         "": "index",
         'index/(:query)': 'index',
-        "search/(:query)": 'search',
+        'search/(:query)': 'search',
+        'execute-query/(:query)': 'executeQuery',
         'abs/:bibcode(/)(:subView)': 'view',
         'user/orcid*(:subView)' : 'orcidPage',
+
         'user/account(/)(:subView)' : 'authenticationPage',
         'user/account/verify/(:subView)/(:token)' : 'routeToVerifyPage',
-        'user/settings(/)(:subView)' : 'settingsPage',
+        'user/settings(/)(:subView)(/)' : 'settingsPage',
+
+        'user/libraries(/)(:id)(/)(:subView)(/)(:subData)(/)' : 'librariesPage',
+        'user/home' : 'homePage',
 
         //"(:query)": 'index',
         '*invalidRoute': 'noPageFound'
@@ -77,22 +85,41 @@ define([
         }
       },
 
+      executeQuery: function(queryId) {
+        this.pubsub.publish(this.pubsub.NAVIGATE, 'execute-query', queryId);
+      },
+
       view: function (bibcode, subPage) {
 
-        var navigateString;
+        // check we are using the canonical bibcode and redirect to it if necessary
+        var q, req, self;
+        self = this;
+        q = new ApiQuery({'q': 'identifier:' + this.queryUpdater.quoteIfNecessary(bibcode), 'fl': 'bibcode'});
+        req = new ApiRequest({query: q, target: ApiTargets.SEARCH, options: {
+          done: function(resp) {
+            var navigateString, href;
+            if (resp.response && resp.response.docs && resp.response.docs[0]) {
+              bibcode = resp.response.docs[0].bibcode;
+              self.pubsub.publish(self.pubsub.DISPLAY_DOCUMENTS, new ApiQuery({'q': 'bibcode:' + bibcode}));
+            }
+            if (!subPage) {
+              navigateString = 'ShowAbstract';
+              href = "#abs/" + bibcode + "/abstract"
+            }
+            else {
+              navigateString = "Show"+ subPage[0].toUpperCase() + subPage.slice(1);
+              href =  "#abs/" + bibcode + "/" + subPage;
+            }
+            self.pubsub.publish(self.pubsub.NAVIGATE, navigateString, {href : href});
+          },
+          fail: function() {
+            console.log('Cannot identify page to load, bibcode: ' + bibcode);
+            self.pubsub.publish(this.pubsub.NAVIGATE, 'index-page');
+          }
+        }});
 
-        if (bibcode) {
-          this.pubsub.publish(this.pubsub.DISPLAY_DOCUMENTS, new ApiQuery({'q': 'bibcode:' + bibcode}));
-        }
+        this.pubsub.publish(this.pubsub.EXECUTE_REQUEST, req);
 
-        if (!subPage) {
-            navigateString = 'abstract-page';
-        }
-          else {
-            navigateString = "Show"+ subPage[0].toUpperCase() + subPage.slice(1);
-        }
-
-         this.pubsub.publish(this.pubsub.NAVIGATE, navigateString, bibcode);
       },
 
 
@@ -124,24 +151,24 @@ define([
           };
         }
         else if (subView == "change-email") {
-            failTitle = "Attempt to change email failed";
-            failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
-            route = ApiTargets.VERIFY + "/" + token;
+          failTitle = "Attempt to change email failed";
+          failMessage = "Please try again, or contact adshelp@cfa.harvard.edu for support";
+          route = ApiTargets.VERIFY + "/" + token;
 
           done = function(reply) {
             //user has been logged in already
             //request bootstrap
             this.getApiAccess({reconnect : true}).done(function(){
-                //redirect to index page
-                that.pubsub.publish(that.pubsub.NAVIGATE, 'index-page');
-                //call alerts widget
-                var title = "Email has been changed.";
-                var msg = "Your new ADS email is <b>" + reply.email + "</b>";
-                that.pubsub.publish(that.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
-              }).fail(function(){
-                 //fail function defined below
-                 fail();
-              });
+              //redirect to index page
+              that.pubsub.publish(that.pubsub.NAVIGATE, 'index-page');
+              //call alerts widget
+              var title = "Email has been changed.";
+              var msg = "Your new ADS email is <b>" + reply.email + "</b>";
+              that.pubsub.publish(that.pubsub.ALERT, new ApiFeedback({code: 0, title : title, msg: msg, modal : true, type : "success"}));
+            }).fail(function(){
+              //fail function defined below
+              fail();
+            });
           };
         }
         else if (subView == "reset-password") {
@@ -165,18 +192,18 @@ define([
           this.pubsub.publish(this.pubsub.ALERT, new ApiFeedback({code: 0, title: failTitle, msg: failMessage, modal : true, type : "danger"}));
         };
 
-         request = new ApiRequest({
-            target : route,
-           options : {
-             type : type || "GET",
-             context : this,
-             done : done,
-             fail : fail
-           }
-          });
+        request = new ApiRequest({
+          target : route,
+          options : {
+            type : type || "GET",
+            context : this,
+            done : done,
+            fail : fail
+          }
+        });
 
-          this.getBeeHive().getService("Api").request(request);
-        },
+        this.getBeeHive().getService("Api").request(request);
+      },
 
       orcidPage :function(){
         this.pubsub.publish(this.pubsub.NAVIGATE, 'orcid-page');
@@ -185,17 +212,62 @@ define([
       authenticationPage: function(subView){
         //possible subViews: "login", "register", "reset-password"
         if (subView && !_.contains(["login", "register", "reset-password-1", "reset-password-2"], subView)){
-            throw new Error("that isn't a subview that the authentication page knows about")
+          throw new Error("that isn't a subview that the authentication page knows about")
         }
-         this.pubsub.publish(this.pubsub.NAVIGATE, 'authentication-page', {subView: subView});
+        this.pubsub.publish(this.pubsub.NAVIGATE, 'authentication-page', {subView: subView});
       },
 
       settingsPage : function(subView){
         //possible subViews: "token", "password", "email", "preferences"
-        if (subView && !_.contains(["token", "password", "email", "preferences"], subView)){
-          throw new Error("that isn't a subview that the settings page knows about")
+        if (_.contains(["token", "password", "email", "delete"], subView)){
+          this.pubsub.publish(this.pubsub.NAVIGATE, 'UserSettings', {subView: subView});
         }
-        this.pubsub.publish(this.pubsub.NAVIGATE, 'settings-page', {subView: subView});
+        else if ("preferences" == subView || !subView){
+          //show preferences if no subview provided
+          this.pubsub.publish(this.pubsub.NAVIGATE, 'UserPreferences');
+        }
+        else {
+          throw new Error("did not recognize user page");
+        }
+      },
+
+      librariesPage : function(id, subView, subData){
+
+        if (id){
+          //individual libraries view
+          var subView = subView || "library";
+          if (_.contains(["library", "admin"], subView )){
+
+            this.pubsub.publish(this.pubsub.NAVIGATE, 'IndividualLibraryWidget', {sub : subView, id : id});
+          }
+          else if(_.contains(["export", "metrics", "visualization"], subView)) {
+
+            subView = "library-" + subView;
+
+            if (subView == "library-export"){
+              this.pubsub.publish(this.pubsub.NAVIGATE, subView, {sub : subData || "bibtex", id : id});
+            }
+            else if (subView == "library-metrics"){
+              this.pubsub.publish(this.pubsub.NAVIGATE, subView, { id : id});
+
+            }
+            else if (subView == "library-visualization"){
+              //not implemented yet
+            }
+
+          }
+          else {
+            throw new Error("did not recognize subview for library view");
+          }
+        }
+        else {
+          //main libraries view
+          this.pubsub.publish(this.pubsub.NAVIGATE, "AllLibrariesWidget", "libraries");
+        }
+      },
+
+      homePage : function(subView){
+        this.pubsub.publish(this.pubsub.NAVIGATE, 'home-page', {subView: subView});
       },
 
       noPageFound : function() {

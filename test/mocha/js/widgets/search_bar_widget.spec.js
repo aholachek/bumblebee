@@ -29,7 +29,7 @@ define([
     });
 
     afterEach(function (done) {
-      minsub.close();
+      minsub.destroy();
       var ta = $('#test');
       if (ta) {
         ta.empty();
@@ -69,7 +69,7 @@ define([
 
     });
 
-    it("should get a new query from FEEDBACK", function(done) {
+    it("should get a new query from FEEDBACK and show the number of results", function(done) {
       var widget = _widget();
       var $w = widget.render().$el;
 
@@ -82,7 +82,9 @@ define([
       setTimeout(function() {
         expect(widget.view.getFormVal()).to.be.eql('foo:bar');
         done();
-      }, 5)
+      }, 5);
+
+      expect($w.find(".s-num-found").html().trim()).to.eql('<span class="s-light-font description">Your search returned</span> <b><span class="num-found-container">841,359</span></b><span class="s-light-font"> results</span>');
     });
 
     it("should allow the user to open and close a dropdown menu from the search bar", function(done){
@@ -101,15 +103,23 @@ define([
 
     it("should allow the user to click to add fielded search words to search bar", function(done) {
       var widget = _widget();
+      $("#test").append(widget.render().el);
       var $w = widget.render().$el;
 
-      //  can't easily trigger hoverIntent so calling the method directly
-      var e = {};
-      e.preventDefault = function(){};
-      e.target = document.querySelector("#field-options button[data-field=author]");
-
+      //should just insert the field if user hasn't selected anything
       widget.view.$("#field-options button[data-field=author]").click();
       expect($w.find(".q").val().trim()).to.equal("author:\"\"");
+
+      //should insert the field around the selected content if user has selected something
+      $w.find(".q").val("author name");
+
+      $w.find(".q").selectRange(0, 11);
+
+      $w.find(".q").trigger("click");
+
+      widget.view.$("#field-options button[data-field=author]").click();
+      expect($w.find(".q").val().trim()).to.equal("author:\"author name\"");
+
       done();
     });
 
@@ -149,10 +159,14 @@ define([
       widget.changeDefaultSort(q6);
       expect(q6.get("sort")[0]).to.eql("first_author asc");
 
-      //shouldn't add a sort if there is no sort and the query is an operator other than citations and references
+      //should add "relevancy desc" if the query is an operator (trending, instructive/reviews, useful)
       var q7 = new ApiQuery({q : "trending(star)"});
       widget.changeDefaultSort(q7);
-      expect(q7.get("sort")).to.eql(undefined);
+      expect(q7.get("sort")[0]).to.eql("relevancy desc");
+
+      var q8 = new ApiQuery({q : "reviews(star)"});
+      widget.changeDefaultSort(q8);
+      expect(q8.get("sort")[0]).to.eql("relevancy desc");
 
       done();
     });
@@ -182,6 +196,55 @@ define([
 
       expect( $("#test .q").val()).to.eql("foo");
       expect($("#test").find(".icon-clear").hasClass("hidden")).to.be.false;
+
+    });
+
+    it("should have an autocomplete that highlights suggestions and is activated again after the user hits space", function(){
+
+      var s = new SearchBarWidget();
+
+      $("#test").append(s.render().el);
+
+      var $input = $("input.q");
+
+      $input.autocomplete("search", "a");
+
+      var autolist = $("ul.ui-autocomplete").last();
+
+      expect(autolist.css("display")).to.eql("block");
+      expect(autolist.find("a").first().text()).to.eql("Author");
+      expect(autolist.find("a").last().text()).to.eql("Abstract");
+
+      autolist.find("li").first().click();
+      expect($input.val()).to.eql("author:\"\"");
+
+      $input.autocomplete("search", "author:\"foo\" a");
+
+      //should try to autocomplete on only the 'a' just as before
+
+      var autolist = $("ul.ui-autocomplete").last();
+
+      expect(autolist.css("display")).to.eql("block");
+      expect(autolist.find("a").first().text()).to.eql("Author");
+      expect(autolist.find("a").last().text()).to.eql("Abstract");
+
+      //should not autocomplete if the last keypress was a backspace
+
+      $input.val("");
+      $input.autocomplete("close");
+
+      var press =   jQuery.Event("keydown");
+      press.ctrlKey = false;
+      press.which = 8;
+      press.keyCode = 8;
+
+      $input.trigger(press);
+
+      $input.autocomplete("search", "author:\"foo\" a");
+
+      expect(!!$input.find('.ui-autocomplete.ui-widget:visible').length).to.be.false;
+
+      $("ul.ui-autocomplete").remove();
 
     });
 

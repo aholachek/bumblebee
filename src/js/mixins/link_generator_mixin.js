@@ -1,4 +1,4 @@
-define(["underscore"], function(_){
+define(["underscore", "js/mixins/openurl_generator"], function(_, OpenURLGenerator){
 
 
 var linkGenerator = {
@@ -48,7 +48,8 @@ var linkGenerator = {
    *   Takes data--a json object from apiResponse--and augments it with a "links"
    *   object.  I used mostly Giovanni's logic here as well. This is to be called
    *   by the processData method of a widget.
-   * */
+   *
+   */
 
   parseLinksData: function (data) {
     var dataWithLinks;
@@ -61,7 +62,7 @@ var linkGenerator = {
 
   },
 
-  getTextAndDataLinks: function (links_data, bib) {
+  getTextAndDataLinks: function (links_data, bib, data) {
 
     var link_types, links = { text : [], data : []};
 
@@ -84,7 +85,30 @@ var linkGenerator = {
           links.text.push({openAccess: openAccess, title: "arXiv e-print", link: this.adsUrlRedirect("preprint", bib)});
           break;
         case "electr":
-          links.text.push({openAccess: openAccess, title: "Publisher Article", link: this.adsUrlRedirect('electr', bib)})
+
+          var electr_link, openUrl;
+          var scan_available =_.where(link_types, {"type": "gif"}).length > 0;
+
+          data = (data !== undefined) ? data : {};
+          var link_server = (data.link_server !== undefined) ? data.link_server : false;
+
+          // Only create an openURL if the following is true:
+          //   - There is NO open access available
+          //   - There is NO scan available from the ADS
+          //   - The user is authenticated
+          //   - the user HAS a library link server
+
+          if (!l.access && !scan_available && link_server){
+            var openURL = new OpenURLGenerator(data, link_server);
+            openURL.createOpenURL();
+            electr_link = openURL.openURL;
+            openUrl = true;
+          } else {
+            electr_link = this.adsUrlRedirect('electr', bib);
+            openUrl = false;
+          }
+
+          links.text.push({openAccess: openAccess, title: "Publisher Article", link: electr_link, openUrl: openUrl});
           break;
         case "pdf":
           links.text.push({openAccess: openAccess, title: "Publisher PDF", link: this.adsUrlRedirect('article', bib)});
@@ -111,7 +135,17 @@ var linkGenerator = {
 
     }, this);
 
-    //get rid of duplicates and default to open access
+    //get rid of links.data duplicates for the "Archival Data" (but add a parenthesis indicating how many)
+    // since I guess the "instances" key isn't working correctly in this case
+     var archival = _.where(links.data, {link :  this.adsUrlRedirect('data', bib) });
+    if (archival.length > 1 ){
+      var single = {title : "Archival Data (" + archival.length + ")", link : this.adsUrlRedirect('data', bib)};
+      //remove all archival links
+      links.data = _.filter(links.data, function(d){if (!d.title.match("Archival Data")){return true }});
+      links.data.push(single);
+    }
+
+    //get rid of text duplicates and default to open access
     var groups = _.groupBy(links.text, "title");
     _.each(groups, function(v,k){
 
@@ -124,7 +158,7 @@ var linkGenerator = {
         });
 
         singleVersion = _.findWhere(v, {"openAccess" : true}) || v[0];
-        links.text.push(singleVersion)
+        links.text.push(singleVersion);
       }
 
     });
@@ -139,7 +173,7 @@ var linkGenerator = {
     var links = {list : [], data : [], text : []};
 
     if (data.links_data) {
-      _.extend(links, this.getTextAndDataLinks(data.links_data, data.bibcode));
+      _.extend(links, this.getTextAndDataLinks(data.links_data, data.bibcode, data));
     }
 
     if (data["[citations]"]) {
@@ -169,9 +203,15 @@ var linkGenerator = {
 
   //this function is used as a widget on the abstract page
   parseResourcesData: function (data) {
+    /**
+     * Assuming the following input:
+     * data = {....,
+     *         ....,
+     *         'link_server': link_server_string}
+     */
 
     if (data.links_data) {
-      var links = this.getTextAndDataLinks(data.links_data, data.bibcode);
+      var links = this.getTextAndDataLinks(data.links_data, data.bibcode, data);
       data.fullTextSources = links.text;
       data.dataProducts = links.data;
     }

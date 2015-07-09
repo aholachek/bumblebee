@@ -8,7 +8,8 @@ define([
 
     var Widget = ListOfThingsWidget.extend({
       queryOperator : "trending",
-      description : "List of papers also read by those who read"
+      description : "Papers also read by those who read",
+      operator : true
     });
 
     return Widget;

@@ -1,23 +1,4 @@
-.s-navbar-brand {
-  h1 {
-    display: inline;
-    font-family : Verdana, Geneva, sans-serif;
-    vertical-align: top;
-    color : darken(@gray-lighter, 25%) !important;
-    font-size: 18px !important;
-    position: relative;
-    top: -7px;
 
-    span {
-      color : @gray-lighter;
-      vertical-align: top;
-      position: relative;
-      top: -36px;
-      display: block;
-      left: 77px;
-    }
-  }
-}
 
 //otherwise dropdown buttons are mis-styled
 //and won't match the actual links
@@ -60,13 +41,15 @@
 
   .s-orcid-title {
     position: relative;
-    top : 3px;
+    top : 2px;
     font-size: 16px;
   }
 
   .s-orcid-title img {
-    height: 25px;
+    height: 20px;
     width: auto;
+    position: relative;
+    top:-4px;
   }
 
 .switch {
@@ -77,7 +60,7 @@
 
 
 .s-orcid-dropdown .dropdown-menu {
-    padding: 10%;
+    padding: 16px;
     width: 350px;
 
     .divider {
@@ -172,33 +155,76 @@
   }
 
   .s-ads-icon {
-    height: 54px;
+    height: 38px;
     position: relative;
-    top: -15px;
+    top: -6px;
     left: 6px;
-    padding-right: 10px;
   }
 
 .s-user-pill-nav {
-  background: #fff;
-  margin-left: -15px;
-  margin-right: -15px;
-  margin-top: 0px;
-  padding: 5px 1%;
+  margin: 0 -15px;
+  padding: 0 1%;
   position: relative;
   z-index: @z-index-1;
-  .s-motion-shadow();
+  background-color: lighten(@navbar-inverse-bg, 5%);
+  color: lighten(@navbar-inverse-color, 2%);
+  border-top: 1px solid black;
 
-  li+li{
-    margin-left:2%;
+  li>a{
+    padding: 15px 15px 11px 15px;
+    border-radius: 0;
+    font-size: 18px;
+    background-color: lighten(@navbar-inverse-bg, 5%);
+    border-bottom: 4px solid lighten(@navbar-inverse-bg, 5%);
+    color:lighten(@navbar-inverse-color, 2%);
+
+    &:hover {
+      background-color: lighten(@navbar-inverse-bg, 8%);
+      border-bottom: 4px solid lighten(@navbar-inverse-bg, 8%);
+
+    }
+
   }
 
-  li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus{
-    background-color: @brand-primary-faded;
+  >li.active>a{
+    background-color: lighten(@navbar-inverse-bg, 10%);
+    &:hover {
+      background-color:lighten(@navbar-inverse-bg, 10%);
+      color: lighten(@brand-primary-faded, 10%);
+      border-bottom: 4px solid  @brand-primary-faded;;
+
+    }
+    color: lighten(@brand-primary-faded, 10%);
+    border-bottom: 4px solid @brand-primary-faded;
+
   }
 
-  >li>a{
-    padding: 8px 15px;
+}
+
+.s-hourly-warning {
+  color: darken(@brand-danger, 20%) !important;
+
+
+  .navbar-brand{
+    color: darken(@brand-danger, 20%) !important;
+    padding : 12.5px 15px;
+    font-weight: bold;
+    height: 30px;
   }
 
+  padding: 2%;
+  width: 418px;
+  border-left: 8px solid darken(@brand-danger, 10%);
+  background-color: lighten(@brand-danger, 20%);
+
+}
+
+
+.s-beta {
+  position: relative;
+  left: 6%;
+  top: -8%;
+  font-size: 31px;
+  color: white;
+  font-weight: 300;
 }

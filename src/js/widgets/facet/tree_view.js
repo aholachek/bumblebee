@@ -15,7 +15,7 @@ define(['underscore',
 
     template: TreeViewTemplate,
 
-    itemViewOptions: function(){
+    childViewOptions: function(){
       var count = this.model.get("count");
       return {
         parentCount: count,
@@ -39,24 +39,8 @@ define(['underscore',
     events: {
       'click .widget-item': "onClick",
       'click .item-caret ': "toggleChildren",
-      'click .show-more': 'onShowMore',
-      'mouseenter label' : "onMouseEnter",
-      'mouseleave label' : "onMouseLeave"
+      'click .show-more': 'onShowMore'
     },
-
-    onMouseEnter: function(e){
-      e.stopPropagation();
-      var val;
-      val = this.model.get("count")
-      this.$(".facet-amount:first").html("&nbsp;(" + this.formatNum(val) + ")" );
-
-    },
-
-    onMouseLeave: function(e){
-      e.stopPropagation();
-      this.$(".facet-amount").empty();
-    },
-
 
     onClick: function (ev) {
       ev.stopPropagation();
@@ -70,7 +54,14 @@ define(['underscore',
       if (this.model.children && this.model.children.length == 0) {
         this.trigger('treeNodeDisplayed');
       }
+    },
+
+    serializeData : function(){
+      var data = this.model.toJSON();
+      data.count = this.formatNum(data.count);
+      return data;
     }
+
 
   });
 

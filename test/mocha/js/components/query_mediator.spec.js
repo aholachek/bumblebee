@@ -39,7 +39,6 @@ define([
         this.server = sinon.fakeServer.create();
         this.server.autoRespond = false;  // when true, all sorts of evil things happen
 
-
         this.server.respondWith(function(req) {
           req.respond(getNextCode(req.url), { "Content-Type": "application/json" }, validResponse);
         });
@@ -61,6 +60,7 @@ define([
 
         this.urlCodes = urlCodes;
         beehive = new BeeHive();
+        beehive.addObject("AppStorage", {clearSelectedPapers : sinon.spy()})
         var api = new Api();
         sinon.spy(api, 'request');
         beehive.addService('Api', api);
@@ -73,7 +73,7 @@ define([
       });
 
       afterEach(function(done) {
-        beehive.close();
+        beehive.destroy();
         beehive = null;
         this.server.restore();
         done();
@@ -85,7 +85,7 @@ define([
         done();
       });
 
-      it.skip("has 'activate' and 'activateCache' function - which does the appropriate setup", function(done) {
+      it("has 'activate' and 'activateCache' function - which does the appropriate setup", function(done) {
         var qm = new QueryMediator();
         var pubsub = beehive.Services.get('PubSub');
 
@@ -100,7 +100,7 @@ define([
         expect(pubsub.subscribe.args[0].slice(0,2)).to.be.eql([qm.pubSubKey, pubsub.START_SEARCH]);
         expect(pubsub.subscribe.args[1].slice(0,2)).to.be.eql([qm.pubSubKey, pubsub.DELIVERING_REQUEST]);
 
-        expect(qm._cache).to.be.undefined;
+        expect(qm._cache).to.be.null;
         qm.activateCache();
         expect(qm._cache).to.be.defined;
 
@@ -241,6 +241,7 @@ define([
       it("has START_SEARCH signal", function(done) {
         var x = createTestQM();
         var qm = x.qm;
+        qm.activateCache();
 
         sinon.spy(qm, 'startExecutingQueries');
 
@@ -254,6 +255,8 @@ define([
 
         qm._cache.put('foo', 'bar');
 
+        expect(beehive.getObject("AppStorage").clearSelectedPapers.callCount).to.eql(0);
+
         qm.startSearchCycle(new ApiQuery({'q': 'foo'}), key);
 
         expect(qm._cache.size).to.be.eql(0);
@@ -265,6 +268,7 @@ define([
         expect(qm.monitorExecution.called).to.be.false;
         setTimeout(function() {
           expect(qm.startExecutingQueries.called).to.be.true;
+          expect(beehive.getObject("AppStorage").clearSelectedPapers.callCount).to.eql(1);
           expect(qm.monitorExecution.called).to.be.true;
           done();
         }, 5);
@@ -278,14 +282,6 @@ define([
         expect(qm.reset.callCount).to.eql(1);
         expect(qm.app.getService.callCount).to.eql(1);
 
-
-
-
-
-
-
-
-
       });
 
 
@@ -293,6 +289,9 @@ define([
       it("responds to EXECUTE_REQUEST signal", function(done) {
         var x = createTestQM();
         var qm = x.qm, key1 = x.key1, key2 = x.key2, req1 = x.req1, req2 = x.req2;
+        qm.activateCache();
+
+        qm._makeWidgetSpin = sinon.spy();
 
         var pubsub = x.pubsub;
         var key = pubsub.getPubSubKey();
@@ -323,6 +322,7 @@ define([
       it("responds to GET_QTREE signal", function(done) {
         var x = createTestQM();
         var qm = x.qm, key1 = x.key1, key2 = x.key2, req1 = x.req1, req2 = x.req2;
+        qm.activateCache();
 
         var pubsub = x.pubsub;
         var key = pubsub.getPubSubKey();
@@ -462,7 +462,8 @@ define([
 
         var x = createTestQM();
         var qm = x.qm, key1 = x.key1, key2 = x.key2, req1 = x.req1, req2 = x.req2;
-
+        qm.activateCache();
+        
         var rk = qm._getCacheKey(req1);
 
         qm._executeRequest(req1, key1);
@@ -565,9 +566,11 @@ define([
           expect(qm.onApiResponse.callCount).to.be.eql(1);
           done();
         }, 5);
-      });
-    });
 
+
+      });
+
+    });
 
     var validResponse = '{\
       "responseHeader":{\
@@ -638,3 +641,5 @@ define([
           "title":["<em>Star</em> Streams"]}}}';
 
 });
+
+

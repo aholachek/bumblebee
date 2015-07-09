@@ -38,16 +38,16 @@ define(['backbone', 'marionette',
 
           this.on('all', function(ev, info) {
             if (ev.indexOf('itemClicked') > -1
-              || ev.indexOf('collection:rendered') > -1
+              || ev.indexOf('render') > -1
               || ev.indexOf('treeClicked') > -1) {
               this.refreshLogicTooltip();
             }
           });
 
-          //this.on("itemview:itemClicked", this.refreshLogicTooltip);
+          //this.on("childview:itemClicked", this.refreshLogicTooltip);
 
           //clear out logic template when collection is reset
-          //this.on("composite:collection:rendered", this.refreshLogicTooltip);
+          //this.on("render:collection", this.refreshLogicTooltip);
 
           // for debugging
           //this.on('all', function(ev) {console.log(ev, arguments)});
@@ -60,10 +60,10 @@ define(['backbone', 'marionette',
       },
 
       //id: "search-results",
-      itemView: BaseItemView,
+      childView: BaseItemView,
       template: WidgetContainerTemplate,
 
-      itemViewContainer:".widget-body",
+      childViewContainer:".widget-body",
 
       events: {
 
@@ -72,11 +72,11 @@ define(['backbone', 'marionette',
         "click .widget-name" : "toggleWidget",
         "click .dropdown-toggle": "enableLogic",
         "click .dropdown-menu .close": "closeLogic",
-        "click .logic-container input": "onLogic"
+        "click .logic-container label": "onLogic"
 
       },
 
-      itemViewOptions: function (model, index) {
+      childViewOptions: function (model, index) {
 //       merging in options from factory stage
         var additionalOptions = Marionette.getOption(this, "additionalItemViewOptions") || {};
 
@@ -149,7 +149,7 @@ define(['backbone', 'marionette',
         var $o = this.$('.widget-options.bottom:first');
         var $sm = $o.find("button[wtarget=ShowMore]");
         if (!$sm.length) {
-          $sm = $('<button class="btn btn-xs btn-link" wtarget="ShowMore">show more</button>');
+          $sm = $('<button class="btn btn-xs btn-link" wtarget="ShowMore">more <i class="fa fa-caret-down"></i></button>');
           $o.append($sm);
         }
         return $sm;
@@ -163,13 +163,12 @@ define(['backbone', 'marionette',
         this.$(".logic-dropdown").addClass("hide").removeClass("open");
       },
 
-
       onLogic: function(ev) {
         if (ev)
         ev.stopPropagation();
         //close the logic dropdown
         this.closeLogic();
-        var val = $(ev.target).val();
+        var val = $(ev.currentTarget).find("input").val();
         this.trigger("containerLogicSelected", val);
       },
 

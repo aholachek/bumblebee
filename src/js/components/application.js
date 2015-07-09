@@ -98,6 +98,17 @@ define([
       this.__barbarianRegistry = {};
     },
 
+    /*
+    * code that accounts for browser deficiencies
+    */
+
+    shim : function(){
+
+      if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+      }
+    },
+
     /**
      * Purpose of this call is to load dynamically all modules
      * that you pass in a configuration. We'll load them using
@@ -278,6 +289,7 @@ define([
      * @private
      */
     _loadModules: function(sectionName, modulePrescription, ignoreErrors) {
+
       var self = this;
       this._checkPrescription(modulePrescription);
 
@@ -293,7 +305,7 @@ define([
       var defer = $.Deferred();
 
       var callback = function () {
-        //console.log('callback', sectionName, arguments)
+        console.timeEnd("startLoading"+sectionName)
         var modules = arguments;
         _.each(implNames, function (name, idx, implList) {
           ret[name] = modules[idx];
@@ -306,13 +318,15 @@ define([
 
       var errback = function (err) {
         var symbolicName = err.requireModules && err.requireModules[0];
-        console.warn("Error loading impl=" + symbolicName);
+        console.warn("Error loading impl=" + symbolicName, err.requireMap);
         if (ignoreErrors) {
           console.warn("Ignoring error");
           return;
         }
         defer.reject();
       };
+
+      console.time("startLoading"+sectionName)
 
       // start loading the modules
       //console.log('loading', implNames, impls)
@@ -330,8 +344,8 @@ define([
       return deferred;
     },
 
-    close: function() {
-      this.getBeeHive().close();
+    destroy : function() {
+      this.getBeeHive().destroy();
     },
     activate: function(options) {
       var beehive = this.getBeeHive();

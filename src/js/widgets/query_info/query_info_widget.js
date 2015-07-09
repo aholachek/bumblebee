@@ -5,7 +5,11 @@ define(['marionette',
     'js/components/api_query',
     'js/widgets/base/base_widget',
     'hbs!./query_info_template',
-    'js/mixins/formatter'
+    'hbs!./feedback-template',
+    'hbs!./library-options',
+    'js/mixins/formatter',
+    'bootstrap',
+    'js/components/api_feedback'
   ],
 
   function(Marionette,
@@ -15,109 +19,239 @@ define(['marionette',
            ApiQuery,
            BaseWidget,
            queryInfoTemplate,
-           FormatMixin
+           FeedbackTemplate,
+           LibraryOptionsTemplate,
+           FormatMixin,
+           Bootstrap,
+           ApiFeedback
     ) {
 
-    var queryModel = Backbone.Model.extend({
+
+    var QueryModel = Backbone.Model.extend({
 
       defaults: {
-        currentQuery: undefined,
-        numFound: undefined,
-        currentSort: undefined,
-        citations: undefined
+        numFound: 0,
+        selected: 0,
+        fq: undefined,
+        //for libraries
+        libraryDrawerOpen : false,
+        //for rendering library select
+        libraries : [],
+        loggedIn : false
       }
-    })
+    });
 
-    var queryDisplayView = Backbone.View.extend({
+    var QueryDisplayView = Marionette.ItemView.extend({
 
-   	  className : "query-info-widget",
+   	  className : "query-info-widget s-query-info-widget",
+      template: queryInfoTemplate,
 
-      initialize: function(options) {
-        this.model = new queryModel();
+      serializeData : function(){
+        var data = this.model.toJSON();
+        data.numFound = this.formatNum(data.numFound);
+        data.selected = this.formatNum(data.selected);
+        return data;
+      },
+
+      modelEvents : {
+        "change:numFound" : "render",
+        "change:selected" : "render",
+        "change:fq" : "render",
+        "change:showFilter" : "render",
+        "change:loggedIn" : "render",
+        "change:libraries" : "renderLibraries"
+      },
+
+      triggers : {
+        "click .clear-selected" : "clear-selected",
+        "click .page-bulk-add" : "page-bulk-add"
       },
 
       events : {
-        "click #show-more-query-data" : "toggleAdditionalInfo"
+        "click .show-filter" : function(){
+          this.model.set("showFilter", true);
+        },
+        "click .hide-filter" : function(){
+          this.model.set("showFilter", false);
+        },
+
+        "click .library-add-title" : "toggleLibraryDrawer",
+        "click .submit-add-to-library" : "libraryAdd",
+        "click .submit-create-library" : "libraryCreate"
       },
 
-      toggleAdditionalInfo : function(ev){
-        var $add = $("#additional-query-data");
-        var $button = $("#show-more-query-data");
-        $add.toggleClass("hide");
+      libraryAdd : function(){
+        var data = {};
 
-        if ($add.hasClass("hide")){
-          $button.html(("<i class=\"fa fa-plus fa-lg\"></i>"))
-        }
-        else {
-          $button.html("<i class=\"fa fa-minus fa-lg\"></i>")
-        }
+        data.libraryID = this.$("#library-select").val();
 
+        if (this.model.get("selected")){
+          data.recordsToAdd = this.$("#all-vs-selected").val();
+        } else {
+          data.recordsToAdd = "all";
+        }
+        this.trigger("library-add", data);
       },
 
-      render: function() {
-        var json = this.model.toJSON();
-        json.numFound = json.numFound ? this.formatNum(json.numFound) : 0;
+      libraryCreate : function(){
+        var data = {};
 
-        if (json.citations){
-
-          _.each(json.citations, function(v,k){
-            json.citations[k] = parseInt(v)
-          })
-
-          json.citations.sum = json.citations.sum ? this.formatNum(json.citations.sum) : 0;
+        if (this.model.get("selected")){
+          data.recordsToAdd = this.$("#all-vs-selected").val();
+        } else {
+          data.recordsToAdd = "all";
         }
 
-        this.$el.html(this.template(json))
-        return this
+        data.name = $("input[name='new-library-name']").val().trim();
+
+        this.trigger("library-create", data);
       },
 
-      template: queryInfoTemplate
-    })
+      toggleLibraryDrawer : function(){
+        this.model.set("libraryDrawerOpen", !this.model.get("libraryDrawerOpen"), {silent : true});
+      },
 
-    _.extend(queryDisplayView.prototype, FormatMixin)
+      onRender : function(){
+        this.$(".icon-help").popover({trigger: "hover", placement: "right", html: true});
+        this.renderLibraries();
+      },
+
+      renderLibraries : function(){
+        this.$(".libraries-container").html(LibraryOptionsTemplate(this.model.toJSON()));
+      }
+
+    });
+
+    _.extend(QueryDisplayView.prototype, FormatMixin);
+
 
     var Widget = BaseWidget.extend({
 
-      defaultQueryArguments: {
-        stats: 'true',
-        'stats.field': 'citation_count'
-      },
-
       initialize: function(options) {
-        this.view = new queryDisplayView();
+        this.model = new QueryModel();
+        this.view = new QueryDisplayView({model : this.model});
         BaseWidget.prototype.initialize.call(this, options)
       },
 
-      processResponse: function(apiResponse) {
-        var q = apiResponse.getApiQuery();
-        var numFound = apiResponse.get("response.numFound");
+      viewEvents : {
+        "clear-selected" : "clearSelected",
+        "page-bulk-add" : "triggerBulkAdd",
+        "library-add" : "libraryAddSubmit",
+        "library-create" : "libraryCreateSubmit"
+      },
 
-        this.view.model.set("currentQuery", q.get("q"));
+      activate: function(beehive) {
+        this.beehive = beehive;
+        _.bindAll(this);
+        this.pubsub = beehive.getService('PubSub');
+        var pubsub = this.pubsub, that = this;
 
-        var filters = [];
-        _.each(q.keys(), function(k) {
-          if (k.substring(0,2) == 'fq') {
-            _.each(q.get(k), function(v) {
-              if (v.indexOf('{!') == -1) {
-                filters.push(v);
+        pubsub.subscribe(pubsub.STORAGE_PAPER_UPDATE, this.onStoragePaperChange);
+        pubsub.subscribe(pubsub.FEEDBACK, this.processFeedback);
+        pubsub.subscribe(pubsub.LIBRARY_CHANGE, this.processLibraryInfo);
+        pubsub.subscribe(pubsub.USER_ANNOUNCEMENT, this.handleUserAnnouncement);
+
+      },
+
+      handleUserAnnouncement : function(event, target, arg2){
+        if (event == "user_info_change" && target == "USER"){
+          var loggedIn = this.beehive.getObject("User").isLoggedIn();
+          this.model.set({ loggedIn: loggedIn});
+        }
+      },
+
+      onStoragePaperChange : function(numSelected){
+       this.model.set("selected", numSelected);
+      },
+
+      processLibraryInfo : function(listOfLibraries){
+       this.model.set("libraries", listOfLibraries);
+     },
+
+      clearSelected : function(){
+        this.beehive.getObject("AppStorage").clearSelectedPapers();
+      },
+
+      triggerBulkAdd : function(){
+        this.pubsub.publish(this.pubsub.CUSTOM_EVENT, "add-all-on-page");
+      },
+
+      libraryAddSubmit : function(data){
+        var that = this, options = {};
+        options.library = data.libraryID;
+        //are we adding the current query or just the selected bibcodes?
+        options.bibcodes = data.recordsToAdd;
+
+        var name = _.findWhere(this.model.get("libraries"), {id : data.libraryID }).name;
+
+        //this returns a promise
+        this.beehive.getObject("LibraryController").addBibcodesToLib(options)
+          .done(function(response, status){
+            if (status == "error"){
+              this.$(".feedback").html(FeedbackTemplate({error : true, name : name, id : data.libraryID }))
+            }
+            else if (status == "success"){
+              this.$(".feedback").html(FeedbackTemplate({
+                success : true,
+                name : name,
+                id : response.id,
+                numRecords: response.number_added
+              }))
+
+            }
+          })
+          .fail();
+
+      },
+
+      libraryCreateSubmit : function(data){
+        var that = this, options = {};
+        //are we adding the current query or just the selected bibcodes?
+        options.bibcodes = data.recordsToAdd;
+        options.name = data.name;
+        this.beehive.getObject("LibraryController").createLibAndAddBibcodes(options)
+          .done(function(response, status){
+            if (status == "error"){
+              this.$(".feedback").html(FeedbackTemplate({ error : true, name : data.name, create : true }));
+            }
+            else if (status == "success"){
+              this.$(".feedback").html(FeedbackTemplate({
+                  create: true,
+                  success : true,
+                  name : data.name,
+                  id : response.id,
+                  numRecords : response.bibcode.length
+            }));
+            }
+          })
+          .fail();
+
+        //handle success or failure here
+
+      },
+
+      processFeedback: function(feedback) {
+        switch (feedback.code) {
+          case ApiFeedback.CODES.SEARCH_CYCLE_STARTED:
+            var q = feedback.query.clone();
+            var filters = [];
+            _.each(q.keys(), function(k) {
+              if (k.substring(0,2) == 'fq') {
+                _.each(q.get(k), function(v) {
+                  if (v.indexOf('{!') == -1) {
+                    filters.push(v);
+                  }
+                });
               }
             });
-          }
-        });
-        this.view.model.set("facets", filters);
-        this.view.model.set("sort", q.get("sort"));
-        this.view.model.set("numFound", numFound);
-        this.view.model.set("citations", apiResponse.get('stats.stats_fields.citation_count'));
-        this.view.render();
-
-        this.view.$("#info-changeable").fadeIn()
-
+            this.view.model.set("fq", filters);
+            break;
+        }
 
       }
 
-    })
+    });
 
     return Widget
 
-
-  })
+  });

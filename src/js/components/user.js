@@ -6,9 +6,9 @@ define([
   'js/components/api_request',
   'js/components/api_targets',
   'js/components/generic_module',
-   'js/mixins/dependon',
-    'js/mixins/hardened',
-    'js/components/api_feedback'
+  'js/mixins/dependon',
+  'js/mixins/hardened',
+  'js/components/api_feedback'
   ],
  function(
    Backbone,
@@ -33,7 +33,6 @@ define([
 
 //for the User Collection
  UserModel = Backbone.Model.extend({
-
     idAttribute : "target"
     });
 
@@ -42,7 +41,8 @@ define([
   //this doesn't have the targets necessary to post data to (e.g. "change_password")
   Config = [
     {target : "TOKEN"},
-    {target : "USER"}
+    {target : "USER"},
+    {target : "USER_DATA"}
     ];
 
   UserCollection = Backbone.Collection.extend({
@@ -66,16 +66,11 @@ define([
 
       _.bindAll(this, "completeLogIn", "completeLogOut");
 
-      this.listenTo(this.collection, "change", this.broadcastChange);
-     this.listenTo(this.collection, "reset", this.broadcastReset);
-
       //set base url, currently only necessary for change_email endpoint
-      if (!this.test){
-        this.base_url = location.origin;
-      }
-      else {
-        this.base_url = "location.origin"
-      }
+      this.base_url = this.test ? "location.origin" : location.origin;
+
+      this.listenTo(this.collection, "change", this.broadcastChange);
+      this.listenTo(this.collection, "reset", this.broadcastReset);
 
       this.buildAdditionalParameters();
     },
@@ -126,27 +121,28 @@ define([
     // endpoint the change belonged to
     //finally, check if logged in, might have to redirect to auth page/settings page
     broadcastChange : function(model){
-      this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "user_info_change", model.get("target"));
+      this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "user_info_change", model.get("target"), model.toJSON());
       this.redirectIfNecessary();
     },
+
     broadcastReset : function(){
-      _.each(this.collection.pluck("target"), function(t){
-        this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "user_info_change", t);
-      },this);
+      this.collection.each(function(model){
+        this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "user_info_change", model.get("target"), model.toJSON());
+      }, this);
       this.redirectIfNecessary();
     },
 
     handleSuccessfulGET : function(response, status, jqXHR){
       var target = jqXHR.target;
       this.collection.get(target).set(response);
-      //the change event on the collection should notify widgets
+      //the change event on the collection will notify widgets
     },
 
     handleFailedGET : function(jqXHR, status, errorThrown){
       this.getPubSub().publish(this.pubsub.USER_ANNOUNCEMENT, "data_get_unsuccessful", jqXHR.target);
     },
 
-    // so success post handler can call the right callback depending on the target
+    // so handleSuccessfulPOST can call the right callback depending on the target
     callbacks : {
       "TOKEN" : function changeTokenSuccess(response, status, jqXHR){
         this.collection.get("TOKEN").set(response);
@@ -161,7 +157,15 @@ define([
       "DELETE" : function deleteAccountSuccess(response, status, jqXHR){
         this.getPubSub().publish(this.getPubSub().USER_ANNOUNCEMENT, "delete_account_successful", "DELETE");
         this.completeLogOut();
+      },
+      "USER_DATA" : function UserDataChange (response, status, jqXHR){
+        //update the collection data with the response (which holds the changed key-value pairs)
+        this.collection.get("USER_DATA").set(response);
       }
+    },
+
+    handleSuccessfulPOST : function(response, status, jqXHR) {
+      this.callbacks[jqXHR.target].call(this, response, status, jqXHR);
     },
 
     buildAdditionalParameters : function() {
@@ -174,11 +178,6 @@ define([
       this.additionalParameters = additional;
     },
 
-    handleSuccessfulPOST : function(response, status, jqXHR) {
-      var target = jqXHR.target;
-      var bound = _.bind(this.callbacks[target], this, response, status, jqXHR);
-      bound();
-    },
 
     handleFailedPOST : function(jqXHR, status, errorThrown){
       var target = jqXHR.target;
@@ -194,8 +193,8 @@ define([
       this.composeRequest(target, "GET");
     },
 
-    /*post data to endpoint: accessible through facade*/
-    postData: function (target, data) {
+    /*POST data to endpoint: accessible through facade*/
+    postData: function (target, data, options) {
       //make sure it has a callback to access later
       if (!this.callbacks[target]){
         throw new Error("a POST request was made that doesn't have a success callback");
@@ -203,11 +202,11 @@ define([
       if (this.additionalParameters[target]){
         _.extend(data, this.additionalParameters[target]);
       }
-      return this.composeRequest(target, "POST", data);
+      return this.composeRequest(target, "POST", data, options);
     },
 
     /*PUT data to pre-existing endpoint: accessible through facade */
-    putData: function (target, data) {
+    putData: function (target, data, options) {
       //make sure it has a callback to access later
       if (!this.callbacks[target]){
         throw new Error("a PUT request was made that doesn't have a success callback");
@@ -215,7 +214,7 @@ define([
       if (this.additionalParameters[target]){
         _.extend(data, this.additionalParameters[target]);
       }
-      return this.composeRequest(target, "PUT", data);
+      return this.composeRequest(target, "PUT", data, options);
     },
 
     /*return read-only copy of user model(s) for widgets: accessible through facade */
@@ -238,44 +237,138 @@ define([
     },
 
     getUserName : function(){
-        var full = this.collection.get("USER").get("user");
-        return full;
+        return  this.collection.get("USER").get("user");
     },
 
     isLoggedIn : function(){
         return !!this.collection.get("USER").get("user");
     },
 
-    composeRequest : function (target, method, data, done, fail) {
+    /*
+    * POST an update to the myads user_data endpoint
+    * (success will automatically update the user object's model of myads data)
+    * */
+
+    setMyADSData : function(data){
+      return this.postData("USER_DATA", data);
+    },
+
+    /*
+    * a convenience method for accessing the collection of user data
+    * and only getting the myads data back, either all of it or specific values
+    * */
+
+    getMyADSData : function(keys){
+
+      keys = keys && !_.isArray(keys) ? [keys] : keys;
+      if (keys){
+        return _.pick(this.getUserData("USER_DATA"), keys);
+      }
+      else {
+        return this.getUserData("USER_DATA");
+      }
+    },
+
+    /*
+    * this function queries the myads open url configuration endpoint
+    * and returns a promise that it resolves with the data
+    * (it is only needed by the preferences widget)
+    * */
+
+    getOpenURLConfig : function(){
+      var deferred = $.Deferred();
+
+      function done (data){
+        deferred.resolve(data);
+      };
+
+      function fail(data){
+        deferred.reject(data);
+      };
+
+       var request = new ApiRequest({
+          target : ApiTargets["OPENURL_CONFIGURATION"],
+          options : {
+            type: "GET",
+            done: done,
+            fail: fail
+          }
+        });
+
+     this.getBeeHive().getService("Api").request(request);
+     return deferred.promise();
+
+    },
+
+    /*
+     * every time a csrf token is required, app storage will request a new token,
+     * so it allows you to attach callbacks to the promise it returns
+     * */
+    sendRequestWithNewCSRF : function(callback){
+      callback = _.bind(callback, this);
+      this.getBeeHive().getObject("CSRFManager").getCSRF().done(callback);
+    },
+
+
+    composeRequest : function (target, method, data, options) {
       var request, endpoint;
       //using "endpoint" to mean the actual url string
       endpoint = ApiTargets[target];
+
       //get data from the relevant model based on the endpoint
       data = data || undefined;
+      options = options || {};
       //allow caller to provide a done method if desired, otherwise go with the standard ones
-      done = done || (method == "GET" ? this.handleSuccessfulGET : this.handleSuccessfulPOST);
-      fail = fail || (method == "GET" ? this.handleFailedGET : this.handleFailedPOST);
+      //handleSuccessFulPost is currently also being called for "put" method calls; I should change the name
+      var done = options.done || (method == "GET" ? this.handleSuccessfulGET : this.handleSuccessfulPOST);
+      var fail = options.fail || (method == "GET" ? this.handleFailedGET : this.handleFailedPOST);
 
-      var csrfToken = this.getBeeHive().getObject("AppStorage").get("csrf");
+      //it came from a form, needs to have a csrf token
+      if (options.csrf){
 
-      request = new ApiRequest({
-        target : endpoint,
-        options : {
-          context : this,
-          type: method,
-          data: JSON.stringify(data),
-          contentType : "application/json",
-          headers : {'X-CSRFToken' :  csrfToken },
-          done: done,
-          fail : fail,
-          //record the endpoint & data
-          beforeSend: function(jqXHR, settings) {
-            jqXHR.target = target;
-            jqXHR.data = data;
+        this.sendRequestWithNewCSRF(function(csrfToken){
+
+          request = new ApiRequest({
+            target : endpoint,
+            options : {
+              context : this,
+              type: method,
+              data: JSON.stringify(data),
+              contentType : "application/json",
+              headers : {'X-CSRFToken' :  csrfToken },
+              done: done,
+              fail : fail,
+              //record the endpoint & data
+              beforeSend: function(jqXHR, settings) {
+                jqXHR.target = target;
+                jqXHR.data = data;
+              }
+            }
+          });
+          this.getBeeHive().getService("Api").request(request);
+        });
+      }
+
+      else {
+        request = new ApiRequest({
+          target : endpoint,
+          options : {
+            context : this,
+            type: method,
+            data: JSON.stringify(data),
+            contentType : "application/json",
+            done: done,
+            fail : fail,
+            //record the endpoint & data
+            beforeSend: function(jqXHR, settings) {
+              jqXHR.target = target;
+              jqXHR.data = data;
+            }
           }
-        }
-      });
-      this.getBeeHive().getService("Api").request(request);
+        });
+        this.getBeeHive().getService("Api").request(request);
+      }
+
     },
 
     //check if  logged in/logged out state has changed
@@ -324,7 +417,11 @@ define([
       getUserName: "get the user's email before the @",
       isOrcidModeOn : "figure out if user has Orcid mode activated",
       setOrcidMode : "set orcid ui on or off",
-      setUser : "set the username to log the user in and fetch his/her info"
+      setUser : "set the username to log the user in and fetch his/her info",
+
+      getOpenURLConfig : "get list of openurl endpoints",
+      setMyADSData : "",
+      getMyADSData : ""
     }
 
   });

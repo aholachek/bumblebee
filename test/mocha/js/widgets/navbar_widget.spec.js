@@ -46,6 +46,11 @@ define([
         }
       });
 
+      minsub.beehive.addObject("AppStorage", {
+        getConfigCopy : function(){return {hourly: false}},
+        getHardenedInstance: function() {return this},
+      });
+
       var n = new NavBarWidget();
       n.activate(minsub.beehive.getHardenedInstance());
       $("#test").append(n.render().el);
@@ -96,7 +101,6 @@ define([
       $("#test").append(n.view.render().el);
       var $w = n.view.$el;
       $w.find('.orcid-sign-in').click();
-      debugger;
 
       expect(signInStub.callCount).to.eql(1);
       expect(setOrcidModeStub.callCount).to.eql(1);
@@ -180,7 +184,7 @@ define([
     //lack of username indicates user is logged out
     u.collection.get("USER").set("user", undefined);
 
-    minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change");
+    minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change", "USER");
 
     expect(n.view.$(".btn.btn-link.dropdown-toggle").length).to.eql(0);
 
@@ -243,14 +247,9 @@ define([
     u.collection.get("USER").set("user", "foo");
     minsub.publish(minsub.pubsub.USER_ANNOUNCEMENT, "user_info_change", "USER");
 
-    $("#test").find(".settings").click();
-    expect(publishSpy.callCount).to.eql(3);
-    expect(publishSpy.args[2][0]).to.eql(minsub.pubsub.NAVIGATE);
-    expect(publishSpy.args[2][1]).to.eql("settings-page");
-    expect(publishSpy.args[2][2]).to.eql(undefined);
 
     $("#test").find(".logout").click();
-    expect(publishSpy.callCount).to.eql(3);
+    expect(publishSpy.callCount).to.eql(2);
     //calls session logout method explicitly
 
     expect(s.logout.callCount).to.eql(1);

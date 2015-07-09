@@ -135,29 +135,43 @@ define(['marionette',
         // to the page (and so the most appropriate mechanism is to close
         // the whole widget
 
-        view.close();
+        view.destroy();
         view = new PaginatedView({collection: coll, model: view.model});
 
         $w = $(view.render().el);
         $('#test').append($w);
+
         expect($w.find("label").length).to.equal(10);
 
-        view.toggleDetails();
+        expect($w.find(".abstract-row:first").text().trim()).to.eql("");
 
-        expect($w.find('.details:first').hasClass("hide")).to.be.false;
-        expect($w.find('.details:last').hasClass("hide")).to.be.false;
+        view.model.set("showAbstract", "closed");
 
+        //should set to "open"
+        view.toggleAbstract();
 
-        view.toggleDetails();
+        view.toggleChildrenAbstracts();
 
-        expect($w.find('.details:first').hasClass("sr-only")).to.be.true;
-        expect($w.find('.details:last').hasClass("sr-only")).to.be.true;
+        expect($w.find(".abstract-row:first").text().trim()).to.eql('Abstract\n                    \n                        \n                        In this paper we give a bijective proof for a relation between uni- bi- and tricellular maps of certain topological genus. While this relation can formally be obtained using Matrix-theory as a result of the Schwinger-Dyson equation, we here present a bijection for the corresponding coefficient equation. Our construction is facilitated by repeated application of a certain cutting, the contraction of edges, incident to two vertices and the deletion of certain edges.');
 
+        expect(coll.pluck("showAbstract")[0]).to.eql(true);
 
-        view.close();
+        expect(coll.pluck("showHighlights")[0]).to.eql(undefined);
+
+        coll.models[0].set("highlights", ["testhighlight"]);
+
+        view.model.set("showHighlights", "closed");
+
+        //should set to "open"
+        view.toggleHighlights();
+
+        expect($w.find(".highlight-row:first li").text()).to.eql("testhighlight")
+
+        view.destroy();
 
         done();
       });
+
 
       it("the controller reacts to user actions", function(done) {
 
@@ -240,6 +254,26 @@ define(['marionette',
         expect(widget.collection.models[4].get('resultsIndex')).to.eql(4);
       });
 
+      it(" the item view allows the user to view the lsit in a search results page if 'operator' option is true and 'queryOperator' option is set", function() {
+
+        var coll = new PaginatedCollection();
+        var view = new PaginatedView({collection: coll, "operator": true, queryOperator: "citations"});
+        var docs = test1().response.docs;
+
+        _.each(docs, function (d) {
+          view.collection.add(_.clone(d));
+        });
+
+        view.model.set("bibcode", "foo")
+
+        var $w = $(view.render().el);
+        $('#test').append($w);
+
+        expect($("#test .s-operator").html().trim()).to.eql('<i>view this list in a search results page:</i><br>\n            <a href="#search/q=citations(foo)" class="btn btn-sm btn-primary-faded"><i class="fa fa-search"></i> citations(foo)</a>');
+
+      });
+
+
 
       it("the ItemView has user interacting parts", function() {
         var model = new Backbone.Model({visible: true, identifier: 'foo',
@@ -264,7 +298,6 @@ define(['marionette',
         });
         var M = ItemView.extend({});
         sinon.spy(M.prototype, 'toggleSelect');
-        sinon.spy(M.prototype, 'toggleDetails');
         sinon.spy(M.prototype, 'showLinks');
         sinon.spy(M.prototype, 'hideLinks');
         var triggerSpy = sinon.spy();
@@ -275,16 +308,6 @@ define(['marionette',
 
         var $w = view.render().$el;
         $('#test').append($w);
-
-
-        $w.find('input[name=identifier]').trigger('change');
-        expect(view.toggleSelect.callCount).to.be.eql(1);
-        $w.find('.details-control').click();
-        expect(view.toggleDetails.callCount).to.be.eql(1);
-        expect($w.find('.details').hasClass('sr-only')).to.be.false;
-        $w.find('.details-control').click();
-        expect(view.toggleDetails.callCount).to.be.eql(2);
-        expect($w.find('.details').hasClass('sr-only')).to.be.true;
 
         view.showLinks.reset();
         view.hideLinks.reset();

@@ -551,7 +551,7 @@ define([
                   "orcid-work": [
                     {
                       "work-type": "JOURNAL_ARTICLE",
-                      "url": "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?fforward=http://dx.doi.org/doifoo",
+                      "url": "https://ui.adsabs.harvard.edu/#abs/bibcode",
                       "work-external-identifiers": {
                         "work-external-identifier": [
                           {
@@ -564,6 +564,12 @@ define([
                             "work-external-identifier-type": "OTHER_ID",
                             "work-external-identifier-id": {
                               "value": 1
+                            }
+                          },
+                          {
+                            "work-external-identifier-type": "DOI",
+                            "work-external-identifier-id": {
+                              "value": "doifoo"
                             }
                           }
                         ]
@@ -817,24 +823,15 @@ define([
               expect(ads).to.eql({
                 "responseHeader": {
                   "params": {
-                    "orcid": "0000-0001-8178-9506"
+                    "orcid": "0000-0001-8178-9506",
+                    "firstName": null,
+                    "lastName": null
                   }
                 },
                 "response": {
                   "numFound": 2,
                   "start": 0,
                   "docs": [
-                    {
-                      "bibcode": "test-bibcode",
-                      "putcode": "469257",
-                      "title": "Tecnologias XXX",
-                      "visibility": "PUBLIC",
-                      "formattedDate": "2014/11",
-                      "pub": "El Profesional de la Informacion",
-                      "abstract": null,
-                      "author": [],
-                      "identifier": "test-bibcode"
-                    },
                     {
                       "bibcode": "bibcode-foo",
                       "putcode": "466190",
@@ -844,7 +841,22 @@ define([
                       "pub": "foo",
                       "abstract": null,
                       "author": [],
-                      "identifier": "bibcode-foo"
+                      "identifier": "bibcode-foo",
+                      "source_name": "Roman Chyla",
+                      "source_date": 1422645668284
+                    },
+                    {
+                      "bibcode": "test-bibcode",
+                      "putcode": "469257",
+                      "title": "Tecnologias XXX",
+                      "visibility": "PUBLIC",
+                      "formattedDate": "2014/11",
+                      "pub": "El Profesional de la Informacion",
+                      "abstract": null,
+                      "author": [],
+                      "identifier": "test-bibcode",
+                      "source_name": "nasa ads",
+                      "source_date": 1424194783005
                     }
                   ]
                 }

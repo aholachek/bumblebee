@@ -3,111 +3,126 @@
 
 .s-landing-page-layout {
 
-  background: darken(@brand-primary, 10%);
-
   margin-left: -15px;
   margin-right: -15px;
   padding-left: 15px;
   padding-right: 15px;
 
-  @media(min-width: @screen-sm-min) {
-
-  background: url('../img/7419293528_befed97b29_b.jpg');
-  background-attachment: fixed;
-   .lh-background-size(cover);
-
-  }
-
-
-
 }
 
 .s-landing-section-1 {
+
+  background-image: url("/styles/img/graph-background.png"), url("/styles/img/background.jpg");
+  background-position: right;
   .row;
-  text-align: center;
-  //for browsers that dont support vh
-  min-height: 234px;
-  height: 30vh;
+  border-bottom: 1px solid @gray-lighter;
+  text-align:center;
+
+  .s-nasa {
+    display:block;
+    font-size:36px;
+    font-weight: 100;
+  }
 
 
   h1 {
 
-    color: #ffffff;
-    font-weight:300;
-    display: inline-block;
-
-  }
-
-  @media(max-width: @screen-xs-max){
-
-    .lh-background-image(linear-gradient(to right, #7474BF 0%, #348AC7 100%));
+    color:white;
+    font-size: 45px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-weight: 300;
 
   }
 
 
-  @media (min-width: @screen-sm-min) {
+  h2 {
+    color:white;
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-weight: 100;
+    font-size: 26px;
+  }
 
+  .s-title-wrapper {
+    padding: 10px 0 0 0;
+  }
 
-  h1 {
-        font-size: 54px;
-        margin-bottom: 0;
+  .s-tabs {
+    margin-left: 13.7%;
+    margin-bottom: 0;
+  }
 
-      }
+  .s-tab {
+    width: 230px;
+    font-size: 24px;
+    text-align: left;
+    border-bottom: 6px solid @transparent;
 
+    &.active {
+      border-bottom: 6px solid @brand-primary-faded;
+
+    }
+
+    &:hover {
+      border-bottom: 6px solid lighten(@brand-primary-faded, 25%)
+    }
+
+    &.active:hover{
+      border-bottom: 6px solid @brand-primary-faded;
+
+    }
+  }
+
+  .s-tab {
 
   }
+
 
 }
-
 
 .s-search-bar-rows-container {
 
   // for the quick add buttons
 
-  .btn-sm{
-    font-size : 16px !important;
+  .btn-sm {
+    font-size: 17px;
   }
-
-}
-
-.s-greeting-text {
-  font-weight: 200;
-  line-height: 1.5;
-  font-weight:300;
-  margin-top:2%;
-    color: #fff;
-  letter-spacing: 1px;
-
-  p {
-    padding: 0
-  }
-
-  @media (min-width :@screen-sm-min) {
-
-    font-size: 24px;
-  }
-
-
-
 }
 
 .s-landing-section-2 {
-  background-color: white;
-  //for browsers that dont support vh
-  height: 546px;
-  height: 70vh;
-  padding-top: 44px;
+  min-height: 700px;
+  background: @darker-background;
 
-
+  .s-content-container {
+    margin: 20px 30px;
+    height: 680px;
+  }
 
 }
 
 .s-landing-section-3 {
 
-  padding: 100px 0;
   font-size: 1.2em;
-  background-color: darken(@gray-lightest, 6%);
   margin: 0 -15px;
+  background: url("../img/background.jpg") top center repeat fixed;
+  color: white;
+  h2 {
+    color: white;
+    font-weight:100;
+  }
+
+  a {
+    color: @brand-info;
+    &:hover {
+      color: darken(@brand-info, 10)
+    }
+  }
+
+  .s-transparent-background {
+    background-color: hsla(308, 100%, 0%, 0.30);
+    padding: 100px 0;
+  }
 
 
   .s-bumble-rocket {
@@ -127,7 +142,7 @@
     .lh-border-radius(50%);
     display: block;
     .lh-box-shadow(0 0 15px #FFFFFF);
-    background-color: saturate(@brand-primary-faded, 5%);
+    background-color: saturate(@brand-primary, 5%);
     font-size: 4em;
     text-align: center;
     vertical-align: middle;
@@ -159,26 +174,22 @@
 
 
 .s-landing-section-4 {
-
+  color: @text-color;
+  background-color: white;
   min-height: 730px;
-  background-color: fade(@brand-primary, 25%);
   font-size: 24px;
   text-align: center;
   margin: 0 -15px;
-
-
 }
 
 .s-description {
   font-size: 1.6em;
-  color: white;
   padding: 15px;
   text-align: center;
 
 }
 
 .s-team {
-  color : white;
   font-weight: 500;
   font-size: 1.2em;
   margin-top: 50px;
@@ -188,38 +199,10 @@
   .s-title {
     font-style: italic;
     font-weight: 300;
-    color: @gray-lighter;
-  }
-
-
-
+}
 
 }
 
-
-.s-landing-section-5 {
-  padding: 5px;
-  color: @gray;
-  background-color: hsla(0, 0%, 0%, 0.6);
-  position: absolute;
-  right: -15px;
-  bottom: 0px;
-  left: -15px;
-
-  a {
-    color: @gray-light;
-  }
-}
-
-
-
-
-.s-bumble-rocket {
-  max-width: 130px;
-  position: relative;
-  top: -22px;
-
-}
 
 
 .s-landing-page-layout {
@@ -236,12 +219,13 @@
 
   }
 
-  .s-quick-add {
-    text-align : center;
-  }
-
   .s-message-control-row {
     text-align: center;
   }
+
+  .s-tab-container {
+    .lh-box-shadow(0 2px 2px -1px rgba(0, 0, 0, .2));
+  }
+
 
 }

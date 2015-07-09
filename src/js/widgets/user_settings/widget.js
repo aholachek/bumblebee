@@ -2,17 +2,12 @@ define([
   'marionette',
   'js/widgets/base/base_widget',
   'js/mixins/form_view_functions',
-  'js/components/api_targets',
   'js/widgets/success/view',
   'js/components/api_feedback',
   'hbs!./templates/api_key',
   'hbs!./templates/change_email',
   'hbs!./templates/change_password',
-  'hbs!./templates/preferences',
-  'hbs!./templates/user_settings',
   'hbs!./templates/delete_account',
-  'hbs!./templates/nav_template',
-  'hbs!./templates/header_template',
   'backbone-validation',
   'backbone.stickit',
   'bootstrap'
@@ -21,17 +16,12 @@ define([
   Marionette,
   BaseWidget,
   FormFunctions,
-  ApiTargets,
   SuccessView,
   ApiFeedback,
   TokenTemplate,
   EmailTemplate,
   PasswordTemplate,
-  PreferencesTemplate,
-  UserSettingsTemplate,
   DeleteAccountTemplate,
-  NavTemplate,
-  HeadingTemplate,
   Bootstrap
   ){
 
@@ -56,24 +46,6 @@ define([
     reset : FormFunctions.reset
   });
 
-  var ChangePreferencesView, ChangePreferencesModel;
-
-  ChangePreferencesModel = FormModel.extend({
-
-    target : ""
-
-  });
-
-  ChangePreferencesView = FormView.extend({
-
-    template : PreferencesTemplate,
-
-    className : "change-preferences",
-
-    onRender : function(){
-      this.activateValidation();
-    }
-  });
 
   var ChangeEmailView, ChangeEmailModel;
 
@@ -91,7 +63,7 @@ define([
         required: true,
         pattern: "email",
         equalTo: 'email',
-        msg: "(A valid email is required)"
+        msg: "(This email must be valid and match the one above)"
       },
       password: {
         required: true,
@@ -253,23 +225,10 @@ define([
     }
   });
 
-  var UserSettingsModel, UserSettingsView, UserSettings;
+  var UserSettingsView, UserSettings;
 
-  UserSettingsModel = Backbone.Model.extend({
 
-    defaults  : function(){
-      return {
-        user : undefined
-      }
-    }
-
-  });
-
-  UserSettingsCollection = Backbone.Collection.extend({
-    model : Backbone.Model
-});
-
-  UserSettingsView = Marionette.Layout.extend({
+  UserSettingsView = Marionette.LayoutView.extend({
 
     initialize : function(options){
       options = options ||{};
@@ -280,127 +239,42 @@ define([
         },this);
     },
 
-    template : UserSettingsTemplate,
-    navTemplate : NavTemplate,
-    headingTemplate : HeadingTemplate,
+    template : function(){return "<div class=\"content-container\"></div>"},
+
     className : "s-user-settings s-form-widget",
 
     regions : {
       content : ".content-container"
     },
 
-    serializeData : function(){
-      var data = this.model.toJSON();
-      data.subViews = this.collection.toJSON();
-      return data;
-    },
-
     events : {
-      "click .nav-container a" : "changeActive",
-      "click .user-pill-nav a:not(.dropdown-toggle)" : "stopPropagation",
-      "click .leave-form" : "completeChangeActive"
-    },
-
-    collectionEvents : {
-      "change:active" : "showView"
-    },
-
-    modelEvents : {
-      "change:user" : "renderHeading"
+      "click .user-pill-nav a:not(.dropdown-toggle)" : "stopPropagation"
     },
 
     stopPropagation : function(){
       return false
     },
 
-    renderNav : function(){
-      this.$(".nav-container").html(this.navTemplate(this.collection.toJSON()));
-    },
-
-    renderHeading : function(){
-      //take only username
-
-      var username = this.model.get("user");
-      username = username ? username.split("@")[0] : undefined;
-
-      this.$(".heading-container").html(this.headingTemplate({user: username}))
-    },
-
-    onRender : function(){
-      this.renderHeading();
-      this.showView();
-    },
-
-    changeActive : function(e){
-      e.preventDefault();
-
-      var $current = $(e.currentTarget);
-      this.potentialSubPage = $current.data("subpage");
-
-      //do check for uncompleted current form info here
-      model = this.collection.findWhere({active : true});
-      //uses the active nav model to find the current view's model
-      currentModel = this.getCurrentModel(model);
-
-      //if page requested is current page, just return
-      if (model.get("href") == this.potentialSubPage){
-        return
-      }
-     //check the vals that we're validating, not just everything that might be in the model
-    var changedVals = _.values(_.pick(currentModel.attributes, _.keys(currentModel.validation)));
-
-     if (changedVals.join("")){
-       //model isn't empty, user has entered something, so show a warning
-       this.showConfirmModal();
-     }
-      else {
-       this.completeChangeActive();
-     }
-    },
-
-    completeChangeActive : function(){
-      //reset the current model
-      model = this.collection.findWhere({active : true});
-      //uses the active nav model to find the current view's model
-      currentModel = this.getCurrentModel(model);
-      //clears all values that require validation
-      currentModel.reset();
-      this.trigger("change:subview", this.potentialSubPage);
-    },
-
-    getCurrentModel : function(navModel){
-      var name = navModel.get("name");
-      var model = Marionette.getOption(this, "subViewModels")[name[0].toLowerCase() + name.slice(1) + "Model"];
-      return model;
-    },
-
-    getCurrentViewConstructor : function(navModel){
-      var name = navModel.get("name");
-      var viewName = name + "View";
-      var View = this.views[viewName];
-      return View
-    },
-
-    showConfirmModal: function(){
-      this.$(".confirm-modal").modal();
-    },
-
-    showView : function(model){
-      if (!model){
-        model = this.collection.findWhere({active : true});
-      }
-      //only show if the change:active is true, not false
-      if (model && model.get("active")) {
-        //it's no longer showing a successView
-        this.successView = false;
-        this.renderNav();
-        var View = this.getCurrentViewConstructor(model);
-        var model = this.getCurrentModel(model);
+    setSubView : function(subView) {
+      debugger
+      var View = this.getCurrentViewConstructor(subView);
+      if (View){
+        var model = this.getCurrentModel(subView);
         var viewToShow = new View({model : model});
 
         this.listenToOnce(viewToShow, "submit-form", this.forwardSubmit);
         this.content.show(viewToShow);
       }
+  },
+
+    getCurrentModel : function(name){
+      var model = Marionette.getOption(this, "subViewModels")[name];
+      return model;
+    },
+
+    getCurrentViewConstructor : function(name) {
+      var View = this.views[name];
+      return View
     },
 
     //special success views
@@ -415,34 +289,25 @@ define([
 
   });
 
- UserSettings = BaseWidget.extend({
+UserSettings = BaseWidget.extend({
+
+  /* use the pathname to identify (found in user nav template */
 
    viewConfig : {
      //each time it needs to be shown, a new view is created
-     "ChangePreferencesView" : ChangePreferencesView,
-     "ChangeEmailView" : ChangeEmailView,
-     "ChangePasswordView" : ChangePasswordView,
-     "ChangeTokenView" : ChangeTokenView,
-     "DeleteAccountView" : DeleteAccountView,
+     "email" : ChangeEmailView,
+     "password" : ChangePasswordView,
+     "token" : ChangeTokenView,
+     "delete" : DeleteAccountView
    },
 
    //only one of each of these models exists for the life of the app
    modelConfig : {
-     "ChangePreferencesModel" : ChangePreferencesModel,
-     "ChangeEmailModel" : ChangeEmailModel,
-    "ChangePasswordModel" : ChangePasswordModel,
-    "ChangeTokenModel" : ChangeTokenModel,
-     "DeleteAccountModel" : DeleteAccountModel
+    "email" : ChangeEmailModel,
+    "password" : ChangePasswordModel,
+    "token" : ChangeTokenModel,
+    "delete" : DeleteAccountModel
   },
-
-    layoutConfig : [
-    //where name corresponds to the name of the model/view
-    {title : "User Preferences", href : "preferences", name : "ChangePreferences"},
-    {title : "Change email", href : "email", name : "ChangeEmail"},
-    {title : "Change password", href : "password", name : "ChangePassword"},
-    {title : "Api Token", href : "token", name : "ChangeToken"},
-    {title : "Delete Account", href : "delete", name : "DeleteAccount"}
-    ],
 
   initialize : function(options){
       options = options || {};
@@ -454,14 +319,8 @@ define([
         this.subViewModels[instanceName] = new v();
       },this);
 
-    //the main model
-      this.model = new UserSettingsModel();
-
-    //navigation collection
-      this.navCollection = new UserSettingsCollection(this.layoutConfig);
     //parent layout iew
       this.view = new UserSettingsView({model : this.model,
-        collection : this.navCollection,
         subViewModels : this.subViewModels,
         viewConfig : this.viewConfig
       });
@@ -471,29 +330,48 @@ define([
 
    //only called by navigator
    setSubView : function(subView){
-     this.navCollection.each(function(m){
-       m.set("active", false, {silent : true});
-     });
-     var toShow = this.navCollection.findWhere({href : subView});
-     toShow.set("active", true);
+     if (_.isArray(subView)){
+       //XXX:figure out why array
+       subView = subView[0];
+     }
+     this.view.setSubView(subView)
    },
 
    activate : function(beehive) {
      this.beehive = beehive;
      this.pubsub = beehive.Services.get('PubSub');
-
-     _.bindAll(this, ["handleUserAnnouncement"]);
+     _.bindAll(this, ["handleUserAnnouncement", "handleOutsideNavigate"]);
      this.pubsub.subscribe(this.pubsub.USER_ANNOUNCEMENT, this.handleUserAnnouncement);
+     this.pubsub.subscribe(this.pubsub.NAVIGATE, this.handleOutsideNavigate);
    },
 
     viewEvents : {
-      "change:subview" : "navigateToSubView",
       "submit-form" : "submitForm"
     },
 
-   navigateToSubView : function(subPage){
-     this.pubsub.publish(this.pubsub.NAVIGATE, "settings-page", {subView: subPage});
-   },
+  handleOutsideNavigate : function(pageName){
+
+    if (this.modelsHaveData()){
+      this.resetModels();
+    }
+  },
+
+  modelsHaveData: function(){
+    var hasData = false;
+    var models = _.values(this.subViewModels);
+    _.each(models, function(m){
+      if (!_.isEmpty(m.toJSON())){
+        //might be a default val not inputed by user
+        if (_.keys(m.toJSON()).toString()== "user" ||_.keys(m.toJSON()).toString() == "token" ){
+          return
+        }
+        else {
+          hasData = true;
+        }
+      }
+    })
+    return hasData;
+  },
 
    /*
    * how to respond after form was submitted and
@@ -509,7 +387,7 @@ define([
          case "CHANGE_EMAIL":
           //get current email, this will be discarded
           //by the call to "resetModels" below
-           var new_email = this.subViewModels.changeEmailModel.get("email");
+           var new_email = this.subViewModels.email.get("email");
            //publish alert
            function alertSuccess (){
            var message = "Please check <b>" + new_email+ "</b> for further instructions";
@@ -521,37 +399,34 @@ define([
            break;
          case "TOKEN":
           break;
-//        case "CHANGE_PREFERENCE":
-//           this.changePreferenceSuccess();
-//           this.getUserData();
        }
      }
      else if (msg === "data_post_unsuccessful"){
        //should show alert
      }
-     else if (msg === "user_info_change"){
-       //refresh all models in the widget
-     }
+
      //clear models, then refill with data from user object
      this.resetModels();
    },
 
    resetModels : function(){
+
      //reset to clean models with user object info
      _.each(this.subViewModels, function(m){
        m.clear();
      });
      this.getUserData();
+
    },
 
    submitForm : function(model){
      var user = this.beehive.getObject("User");
      var target = model.target;
      if (model.PUT){
-       user.putData(target, model.toJSON());
+       user.putData(target, model.toJSON(), {csrf : true});
      }
      else {
-       user.postData(target, model.toJSON());
+       user.postData(target, model.toJSON(), {csrf : true});
      }
    },
 
@@ -560,16 +435,9 @@ define([
      var data = this.beehive.getObject("User").getUserData();
 
      //set the data into the correct models
-     this.subViewModels.changeTokenModel.set(data["TOKEN"]);
-     this.subViewModels.changeEmailModel.set(data["USER"]);
+     this.subViewModels.token.set(data["TOKEN"]);
+     this.subViewModels.email.set(data["USER"]);
 
-     //the main view also needs some info
-     this.model.set("user", this.beehive.getObject("User").getUserName());
-
-     //re-render whatever the current view is as long as it's not a success view
-     if (!this.view.successView){
-       this.view.showView();
-     }
    },
 
    /*

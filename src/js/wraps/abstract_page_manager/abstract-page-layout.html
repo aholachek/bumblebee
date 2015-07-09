@@ -1,0 +1,58 @@
+<div id="abstract-page-layout" class="s-abstract-page-layout">
+
+    <div class="row s-stable-search-bar-height">
+        <div class="s-search-bar-full-width-container">
+            <div class="col-sm-2 s-back-button-container">
+                {{#if this.query}}
+                <a href="" class="back-button btn btn-sm btn-default"> <i class="fa fa-arrow-left"></i> Back to results</a>
+                {{/if}}
+            </div>
+            <div class="col-sm-7 s-search-bar-row" id="search-bar-row"
+                 data-widget="SearchWidget"></div>
+        </div>
+    </div>
+
+    <div class="row s-message-control-row" id="message-control-row">
+        <span data-widget="AlertsWidget"></span>
+    </div>
+
+    <div class="row s-dynamic-page-body" id="dynamic-page-body">
+        <div class="s-abstract-content">
+            <div class="col-sm-2 s-left-column" id="left-column">
+                <div class="nav-container s-left-col-container">
+                </div>
+            </div>
+            <div class="col-sm-7 s-middle-column" id="middle-column">
+                <div class="main-content-container s-main-content-container">
+                    <div id="abstract-title-container" class="s-abstract-title-container"></div>
+                    <div id="current-subview">
+                        <div data-widget="ShowAbstract"/>
+                        <div data-widget="ShowCitations"/>
+                        <div data-widget="ShowReferences"/>
+                        <div data-widget="ShowCoreads"/>
+                        <div data-widget="ShowTableOfContents"/>
+                        <div data-widget="ShowSimilar" data-debug="true"/>
+                        <div data-widget="ShowGraphics"/>
+                        <div data-widget="ShowPaperExport"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-right-col-container col-sm-3 s-right-column" id="right-col-container">
+                <div class="s-right-col-widget-container">
+                    <div data-widget="ShowResources"/>
+               </div>
+                <div class="s-right-col-widget-container">
+                    <div data-widget="ShowGraphicsSidebar"/>
+                </div>
+                <div class="s-right-col-widget-container">
+                <div data-widget="ShowRecommender"/>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+</div>

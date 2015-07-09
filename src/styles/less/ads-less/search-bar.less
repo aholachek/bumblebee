@@ -97,12 +97,15 @@
   padding-left: 0.5%;
   padding-top: 1%;
   max-height: 40px;
-  overflow: hidden;
+
+  button {
+    font-size: 14px;
+  }
 }
 
 .s-clear-control {
   position: absolute;
-  top: 7px;
+  top: 6px;
   right: 15%;
   display: block;
   text-align: center;
@@ -119,4 +122,65 @@
     right: 8%;
   }
   .s-icon-hover;
+}
+
+.s-auto-description {
+  font-weight: 300;
+  font-style: italic;
+}
+
+#field-options {
+  position: relative;
+  left: 1.5%;
+}
+
+.s-field-options {
+  font-size: 18px;
+  color: @gray-light;
+  position: relative;
+  top: 2px;
+  font-variant: small-caps;
+}
+
+
+.s-num-found {
+  position: absolute;
+  left: 2%;
+  top: 88px;
+  font-size: 16px;
+  display: none;
+}
+
+.s-results-page-layout {
+  .s-num-found {
+    display:block;
+  }
+}
+
+.s-motion-shadow {
+  .s-num-found {
+    position: absolute;
+    left: -20%;
+    top: 8px;
+    font-size: 16px;
+    display:none;
+  }
+
+  .description {
+    display:none;
+  }
+
+}
+
+
+input.q {
+  font-size: 16px;
+
+}
+
+.s-landing-page-layout {
+
+  .s-field-option {
+    font-size: 21px;
+  }
 }

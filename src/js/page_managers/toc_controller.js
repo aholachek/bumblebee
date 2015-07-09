@@ -1,30 +1,44 @@
 define([
     "marionette",
-    "hbs!./templates/toc-page-layout",
     './controller',
-    './three_column_view'
+    './toc_widget'
   ],
   function (Marionette,
-            pageTemplate,
-            BasicPageManagerController
+            BasicPageManagerController,
+            TOCWidget
     ) {
+
+    /*
+     * need to provide a toc template for the toc view when you inherit from this
+     * */
 
     var PageManagerController = BasicPageManagerController.extend({
 
-
       assemble: function() {
         BasicPageManagerController.prototype.assemble.apply(this, arguments);
-        var self = this;
 
-        // listen to every widget we manage
-        var listener = _.bind(self.onPageManagerEvent, self);
+        if (this.TOCEvents){
+          //initiate the TOC view
+          this.widgets.tocWidget = new TOCWidget(
+            {template : Marionette.getOption(this, "TOCTemplate"),
+            events : Marionette.getOption(this, "TOCEvents") });
+        }
+        else {
+          //initiate the TOC view
+          this.widgets.tocWidget = new TOCWidget({
+            template : Marionette.getOption(this, "TOCTemplate")
+          });
+        }
 
-        _.each(_.keys(self.widgets), function(w) {
-          self.listenTo(self.widgets[w], "page-manager-event", listener);
-          self.broadcast('page-manager-message', 'new-widget', w);
-        });
+        //insert the TOC nav view into its slot
+        this.view.$(".nav-container").append(this.widgets.tocWidget.render().el);
+
+        _.each(_.keys(this.widgets), function(w) {
+          this.listenTo(this.widgets[w], "page-manager-event", _.bind(this.onPageManagerEvent, this, this.widgets[w]));
+          this.broadcast('page-manager-message', 'new-widget', w);
+        }, this);
+
       },
-
 
       /**
        * Listens to and receives signals from managed widgets.
@@ -35,39 +49,56 @@ define([
        * @param event
        * @param data
        */
-      onPageManagerEvent: function(event, data) {
-        var self = this;
+      onPageManagerEvent: function(widget, event, data) {
+
         var sender = null; var widgetId = null;
 
         // try to find/identify sender
-        if (data.widget) {
-          _.each(_.pairs(self.widgets), function(w) {
-            if (w[1] === data.widget) {
+        if (widget) {
+          _.each(_.pairs(this.widgets), function(w) {
+            if (w[1] === widget) {
               widgetId = w[0];
               sender = w[1];
             }
           });
-          delete data.widget;
         }
 
         if (event == 'widget-ready' && sender !== null) {
           data["widgetId"] = widgetId;
-          self.broadcast('page-manager-message', event, data);
+          this.broadcast('page-manager-message', event, data);
         }
         else if (event == 'widget-selected') {
-          widgetId = data;
-          this.pubsub.publish(this.pubsub.NAVIGATE, this.widgetId ? this.widgetId + ':' + widgetId : widgetId);
+          this.pubsub.publish(this.pubsub.NAVIGATE, data.idAttribute, data);
         }
         else if (event == 'broadcast-payload'){
-          self.broadcast('page-manager-message', event, data);
+          this.broadcast('page-manager-message', event, data);
+        }
+
+        else if (event == "navigate"){
+          this.pubsub.publish(this.pubsub.NAVIGATE, data.navCommand, data.sub);
+        }
+
+        else if (event == "apply-function"){
+          data.func.apply(this);
         }
 
       },
 
-      onClose: function () {
+      setActive : function(widgetName, subView){
+        //now inform the widget of the subView to show
+        if (subView && this.widgets[widgetName].setSubView instanceof Function){
+          this.widgets[widgetName].setSubView(subView);
+        }
+        if (subView){
+          widgetName = widgetName + "__" + subView;
+        }
+        this.widgets.tocWidget.collection.selectOne(widgetName);
+      },
+
+      onDestroy: function () {
         this.stopListening();
         this.widgets = {};
-        this.view.close();
+        this.view.destroy();
       }
 
     });
