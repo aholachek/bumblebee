@@ -1,4 +1,6 @@
-<form>
+<div class="row">
+
+<form class="paper-form s-paper-form col-md-6 clearfix">
     <div class="form-group">
 
         <label for="pub-input">Publication </label>
@@ -34,3 +36,23 @@
         </div>
     </div>
 </form>
+
+<form class="bibcode-form col-md-6 clearfix">
+    <div class="form-group">
+        <label for="#bibcode-textarea">List of Bibcodes</label>
+        <div class="s-light-font">
+            Enter Bibcode (e.g. 1989ApJ...342L..71R), arXiv ID, or complete DOI (one per line).
+        </div>
+            <textarea class="form-control" name="" id="bibcode-textarea" cols="30" rows="12"></textarea>
+    </div>
+
+    <div class="form-group">
+        <div class="button-div pull-right" style="padding-top: 7px;">
+            <button class="btn clear"><fa class="fa fa-times"></fa> Clear</button>
+            <button class="btn btn-primary author-submit" disabled="true" type="submit"><i class="fa fa-search"></i> Search</button>
+        </div>
+    </div>
+</form>
+
+
+</div>
