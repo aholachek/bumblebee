@@ -20,38 +20,46 @@ define([
     className : "paper-search-form",
 
     events: {
-      "click .clear" : function(e){
-        e.preventDefault();
-        this.render();
-      },
-      "keyup input" : "checkDisabled",
-      "click button[type=submit]" : "submitForm",
-      "click button.parse" : "parseReference"
+      "keyup .paper-form input" : "checkPaperFormDisabled",
+      "click .paper-form button[type=submit]" : "submitPaperForm",
+
+      "keyup .bibcode-form textarea" : "checkBibcodeFormDisabled",
+      "click .bibcode-form button[type=submit]" : "submitBibcodeForm"
     },
 
     onRender : function(e){
       this.$("#pub-input").autocomplete({ source : AutocompleteData, minLength : 2 , autoFocus : true });
     },
 
-    checkDisabled : function(){
+    checkPaperFormDisabled : function(){
       //require at least 1 character to be in at least 1 input field
       var fields= this.$("input:not(.parse-reference)").map(function(){
         return $(this).val();
       }).get();
 
       if (fields.join("").match(/\w+/)){
-        this.$("button[type=submit]").prop("disabled", false);
+        this.$(".paper-form button[type=submit]").prop("disabled", false);
       }
       else {
-        this.$("button[type=submit]").prop("disabled", true);
+        this.$(".paper-form button[type=submit]").prop("disabled", true);
       }
     },
 
-    submitForm : function(e){
+    checkBibcodeFormDisabled : function(){
 
-      this.$("button[type=submit]").html('<i class="icon-loading"/>  Loading...')
+      if (this.$(".bibcode-form textarea").val().match(/\w+/)){
+        this.$(".bibcode-form button[type=submit]").prop("disabled", false);
+      }
+      else {
+        this.$(".bibcode-form button[type=submit]").prop("disabled", true);
+      }
+    },
 
-      var terms = this.$("input:not(.parse-reference)").map(function(){
+    submitPaperForm : function(e){
+
+      this.$(".paper-form button[type=submit]").html('<i class="icon-loading"/>  Loading...')
+
+      var terms = this.$(".paper-form input:not(.parse-reference)").map(function(){
         var $t = $(this);
         $t.val() ? toReturn = $t.data("term") + ":" + $t.val() : toReturn =  undefined;
         return toReturn;
@@ -60,6 +68,19 @@ define([
       terms = _.filter(terms, function(t){if (t){return t}});
 
       this.trigger("submit", terms.join(" "));
+      e.preventDefault();
+    },
+
+    submitBibcodeForm : function(e){
+
+      this.$(".bibcode-form button[type=submit]").html('<i class="icon-loading"/>  Loading...');
+
+      var terms = this.$(".bibcode-form textarea").val().split(/\s+/);
+
+      terms = _.filter(terms, function(t){if (t){return t}});
+
+      this.trigger("submit", "bibcode:(" + terms.join(" OR ") + ")");
+
       e.preventDefault();
     }
 
@@ -97,6 +118,8 @@ define([
     },
 
     onShow : function(){
+      //wipe out any previously filled in parts
+      this.render();
       this.view.$("input#pub-input").focus();
     }
 

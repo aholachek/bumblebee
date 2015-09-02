@@ -10,7 +10,8 @@ define([
     'js/components/api_query',
     'js/components/api_feedback',
     'js/mixins/hardened',
-    'js/components/json_response'
+    'js/components/json_response',
+    'js/components/api_targets'
   ],
   function(
     _,
@@ -22,7 +23,8 @@ define([
     ApiQuery,
     ApiFeedback,
     Hardened,
-    JsonResponse
+    JsonResponse,
+    ApiTargets
     ) {
 
     var Api = GenericModule.extend({
@@ -87,6 +89,7 @@ define([
 
     Api.prototype.request = function(request, options) {
 
+
       options = _.extend({}, options, request.get('options'));
       
       var data,
@@ -115,6 +118,13 @@ define([
 
       if (!u) {
         throw Error("Sorry, you can't use api without url");
+      }
+
+      //force a POST to bigquery if the api query's 'q' parameter > 1000 chars
+      if (request.get("query") &&  request.get("query").get("q") && request.get("query").get("q")[0].length > 1000){
+        //bigquery
+        options.type = "POST";
+        options.url = this.url + "/" + ApiTargets.BIGQUERY;
       }
 
       var opts = {
