@@ -308,6 +308,9 @@ define([
 
         var that = this, $copy = $(this.$el.clone());
 
+        $copy.height("2000px");
+        $copy.width(0.744 * 2000 + "px")
+
         $copy.prepend(PrintTemplate({ query : that.model.get("q"), date : new Date().toLocaleDateString() }));
         $copy.css("background-color", "#fff");
         $copy.find(".metrics-metadata").remove();
@@ -334,18 +337,19 @@ define([
 
         });
 
-        //take snapshot
-        window.html2canvas($copy[0], {
+          //take snapshot
+          window.html2canvas($copy[0], {
 
-          onrendered: function(canvasEl) {
-            var openWindow = window.open("", "title", "attributes");
-            openWindow.document.write("<img src='"+canvasEl.toDataURL()+"' />");
-            openWindow.focus();
-            openWindow.print();
+            onrendered: function(canvasEl) {
+              var openWindow = window.open("", "title", "attributes");
+              openWindow.document.documentElement.innerHTML = "<img src='"+canvasEl.toDataURL()+"' />";
+              openWindow.focus();
+//              $copy.remove();
+            }
+          });
 
-            $copy.remove();
-          }
-        });
+
+
       },
 
       changeRows : function(e) {

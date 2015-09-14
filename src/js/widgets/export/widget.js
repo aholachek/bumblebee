@@ -289,8 +289,6 @@ define([
        */
       _getExports : function(format, identifiers){
 
-
-
         format = format || this.model.get('format') || 'bibtex';
 
         //export endpoints
@@ -323,6 +321,7 @@ define([
           var pubsub = this.getPubSub();
           pubsub.subscribeOnce(pubsub.DELIVERING_RESPONSE, _.bind(function(exports) {
             if (exports && exports.has('export')) {
+              debugger
               this.model.set('export', exports.get('export'));
             }
             else {
