@@ -119,6 +119,7 @@ define([
     },
 
     navigateToPage :  function (e) {
+      debugger
       var $t = $(e.currentTarget), idAttribute = $t.attr("data-widget-id");
 
       var data = { idAttribute : idAttribute };

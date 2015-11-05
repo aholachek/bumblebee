@@ -163,9 +163,6 @@ textarea[disabled]{
     list-style: none;
     padding-left: 0;
   }
-  li:not(.divider) {
-    padding: 6px;
-  }
 
   li.divider {
     margin: 5px 0;
@@ -205,7 +202,6 @@ textarea[disabled]{
   }
 
   li:not(.divider):not(.no-hover-style) {
-    padding: 10px;
     border-left: 3px solid $body-bg;
     &:hover {
       background-color: darken($gray-lightest, 2%);
@@ -213,7 +209,9 @@ textarea[disabled]{
       border-left: 3px solid $gray-light;
     }
     a {
-      color: $text-color
+      color: $text-color;
+      padding: 12px;
+      display:block;
     }
     a:hover {
       text-decoration: none;

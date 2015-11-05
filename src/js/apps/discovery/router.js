@@ -145,7 +145,7 @@ define([
             }
             else {
               navigateString = "Show"+ subPage[0].toUpperCase() + subPage.slice(1);
-              href =  "#abs/" + bibcode + "/" + subPage;
+              href =  "#/abs/" + bibcode + "/" + subPage;
             }
             self.routerNavigate(navigateString, {href : href});
 

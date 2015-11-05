@@ -101,7 +101,7 @@ define([
 
 
         this.set("404", function(){
-          $("#body-template-container").html(ErrorTemplate());
+          $("#/body-template-container").html(ErrorTemplate());
           this.route = '#404';
         });
 
@@ -109,14 +109,14 @@ define([
         this.set('ClassicSearchForm', function() {
           app.getObject('MasterPageManager').show('LandingPage', ["ClassicSearchForm"]);
           app.getWidget("LandingPage").done(function(widget){widget.setActive("ClassicSearchForm")});
-          this.route = "#classic-form";
+          this.route = "#/classic-form";
 
         });
 
         this.set('PaperSearchForm', function() {
           app.getObject('MasterPageManager').show('LandingPage', ['PaperSearchForm']);
           app.getWidget("LandingPage").done(function(widget){widget.setActive("PaperSearchForm");});
-          this.route = "#paper-form";
+          this.route = "#/paper-form";
         });
 
 
@@ -133,7 +133,7 @@ define([
              widget.setActive("UserSettings",  subView);
            });
 
-          this.route = "#user/settings/"+subView;
+          this.route = "#/user/settings/"+subView;
           publishPageChange("settings-page");
 
         });
@@ -149,7 +149,7 @@ define([
               widget.setActive("UserPreferences");
             });
 
-          this.route = "#user/settings/preferences";
+          this.route = "#/user/settings/preferences";
           publishPageChange("settings-page");
 
         });
@@ -163,7 +163,7 @@ define([
             widget.setSubView({view : subView});
           });
 
-          this.route = "#user/libraries/";
+          this.route = "#/user/libraries/";
           publishPageChange("libraries-page");
 
         });
@@ -199,7 +199,7 @@ define([
             this.route = "#/public-libraries/" + data.id ;
           }
           else {
-            this.route = "#user/libraries/" + data.id;
+            this.route = "#/user/libraries/" + data.id;
           }
 
         });
@@ -270,7 +270,7 @@ define([
             this.route = "#/public-libraries/" + data.id ;
           }
           else {
-            this.route = "#user/libraries/" + data.id;
+            this.route = "#/user/libraries/" + data.id;
           }
 
         });
@@ -323,7 +323,7 @@ define([
             this.route = "#/public-libraries/" + data.id ;
           }
           else {
-            this.route = "#user/libraries/" + data.id;
+            this.route = "#/user/libraries/" + data.id;
           }
 
         });
@@ -375,7 +375,7 @@ define([
             this.route = "#/public-libraries/" + data.id ;
           }
           else {
-            this.route = "#user/libraries/" + data.id;
+            this.route = "#/user/libraries/" + data.id;
           }
 
         });
@@ -397,7 +397,7 @@ define([
             self.get('index-page').execute();
           }
           else {
-            this.route = "#user/account/" + subView;
+            this.route = "#/user/account/" + subView;
             app.getObject('MasterPageManager').show("AuthenticationPage",
               ['Authentication']);
             app.getWidget("Authentication").done(function(w) {
@@ -411,7 +411,7 @@ define([
           app.getObject('MasterPageManager').show('SearchPage',
             searchPageAlwaysVisible);
           var q = app.getObject('AppStorage').getCurrentQuery();
-          this.route = '#search/' + queryUpdater.clean(q).url();
+          this.route = '#/search/' + queryUpdater.clean(q).url();
           publishFeedback({code: ApiFeedback.CODES.UNMAKE_SPACE});
         });
 
@@ -581,7 +581,7 @@ define([
           var widgetName = _.map(command.split("-").slice(1), function(w){return w[0].toUpperCase() + w.slice(1)}).join("");
           app.getObject('MasterPageManager').show('SearchPage',
             [widgetName].concat(searchPageAlwaysVisible.slice(1)));
-          this.route =  '#search/' + queryUpdater.clean(q.clone()).url() +
+          this.route =  '#/search/' + queryUpdater.clean(q.clone()).url() +
                         "/" + command.split("-").slice(1).join("-");
 
           //show selected, need to explicitly tell widget to show bibcodes
