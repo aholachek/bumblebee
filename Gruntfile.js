@@ -85,6 +85,7 @@ module.exports = function(grunt) {
         options: {
           baseUrl: 'dist/js',
           allowSourceOverwrites: true,
+          stubModules: ['jsx', 'text', 'JSXTransformer'],
           keepBuildDir: true,
           generateSourceMaps: false,
           removeCombined: true,
@@ -106,6 +107,7 @@ module.exports = function(grunt) {
         options: {
           baseUrl: 'dist/',
           wrapShim: true,
+          stubModules: ['jsx', 'text', 'JSXTransformer'],
           include : (function(){
 
             var s = grunt.file.read("src/discovery.config.js"),

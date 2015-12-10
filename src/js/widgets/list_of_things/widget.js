@@ -49,7 +49,7 @@ define([
 
         var defaultPagination = {
           pagination: true,
-          perPage: 20,
+          perPage: 200,
           numFound: undefined,
           currentQuery: undefined,
           start: 0,

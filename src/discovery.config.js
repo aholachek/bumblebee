@@ -1,7 +1,6 @@
 // Main config file for the Discovery application
 require.config({
 
-
   // Initialize the application with the main application file or if we run
   // as a test, then load the test unittests
   deps: (function(){
@@ -165,6 +164,8 @@ require.config({
     'jquery': 'libs/jquery/jquery',
     'backbone': 'libs/backbone/backbone',
     'hbs': 'libs/require-handlebars-plugin/hbs',
+    'jsx': 'libs/jsx-requirejs-plugin/jsx',
+    'react': 'libs/react/react',
     'async': 'libs/requirejs-plugins/async',
     'marionette' : 'libs/marionette/backbone.marionette',
     'backbone.wreqr' : 'libs/backbone.wreqr/lib/backbone.wreqr',
@@ -200,6 +201,10 @@ require.config({
   hbs : {
     'templateExtension' : 'html',
     helpers: false
+  },
+
+  jsx: {
+    fileExtension: '.jsx'
   },
 
   shim: {
