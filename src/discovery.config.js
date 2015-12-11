@@ -166,6 +166,10 @@ require.config({
     'hbs': 'libs/require-handlebars-plugin/hbs',
     'jsx': 'libs/jsx-requirejs-plugin/jsx',
     'react': 'libs/react/react',
+    'text':    'libs/requirejs-plugins/text',
+    JSXTransformer: "libs/babel/browser",
+
+
     'async': 'libs/requirejs-plugins/async',
     'marionette' : 'libs/marionette/backbone.marionette',
     'backbone.wreqr' : 'libs/backbone.wreqr/lib/backbone.wreqr',
@@ -204,8 +208,13 @@ require.config({
   },
 
   jsx: {
-    fileExtension: '.jsx'
+    fileExtension: '.jsx',
+    transformer: 'babel',
+    babelOptions: {
+      sourceMaps: 'inline'
+    }
   },
+
 
   shim: {
 
@@ -264,7 +273,12 @@ require.config({
 
     'persist-js': {
       exports: 'Persist'
+    },
+
+    react: {
+      exports: 'React'
     }
+
   },
 
   callback: function() {

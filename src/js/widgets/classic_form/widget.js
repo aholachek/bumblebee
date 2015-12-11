@@ -5,7 +5,8 @@ define([
   "hbs!./form",
   "jquery-ui",
   "js/widgets/paper_search_form/topterms",
-  "analytics"
+  "analytics",
+  //"jsx!./view",
 ], function(
   BaseWidget,
   ApiQuery,

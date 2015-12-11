@@ -134,128 +134,130 @@ define([
         this.$input = $input;
         var performSearch = true;
 
-        $input.autocomplete({
-          minLength: 1,
-          autoFocus : true,
-          //default delay is 300
-          delay : 0,
-          source:  function( request, response ) {
+        requestAnimationFrame(function(){
+          $input.autocomplete({
+            minLength: 1,
+            autoFocus : true,
+            //default delay is 300
+            delay : 0,
+            source:  function( request, response ) {
 
-            var toMatch, matcher, toReturn;
+              var toMatch, matcher, toReturn;
 
-            //don't look for a match if the keydown event was a backspace
-            if (!performSearch){
-              $input.autocomplete("close");
-              return;
+              //don't look for a match if the keydown event was a backspace
+              if (!performSearch){
+                $input.autocomplete("close");
+                return;
+              }
+
+              toMatch = findActiveAndInactive(request.term).active;
+              if (!toMatch)
+                return
+              //testing each entry's "match" var in autocomplete array against the toMatch segment
+              //then returning a uniqued array of matches
+              matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(toMatch), "i");
+              toReturn  = $.grep(autocompleteArray, function (item) {
+                return matcher.test(item.match);
+              });
+              toReturn = _.uniq(toReturn, false, function(item){
+                return item.label
+              });
+              response(toReturn);
+            },
+
+            /* insert a suggestion: requires autofocus:true
+             * to be set if you want to show by default without user
+             * keyboard navigation or mouse hovering
+             * */
+            focus: function( event, ui ) {
+
+              var val = $input.val().replace(/^\s+/,""),
+                  suggest = ui.item.value;
+
+              var exists, toMatch, confirmedQuery, splitQuery;
+
+              var currentlySelected = getSelectedText();
+              //might be moving down the autocomplete list
+              if (currentlySelected){
+                exists = val.slice(0, val.length - currentlySelected.length)
+              }
+              else {
+                exists = val;
+              }
+
+              splitQuery = findActiveAndInactive(exists);
+
+              toMatch = splitQuery.active,
+                  confirmedQuery = splitQuery.inactive;
+
+              if (confirmedQuery){
+                //suggestedQ will be inserted if user accepts it
+                $input.data("ui-autocomplete").suggestedQ = confirmedQuery + " " + ui.item.value;
+              }
+              else {
+                $input.data("ui-autocomplete").suggestedQ = ui.item.value;
+              }
+
+              // only insert text if the words match from the beginning
+              // not, for instance, if user typed "refereed" and the matching string is "property:refereed"
+              if ( suggest.indexOf(toMatch) == 0 ) {
+
+                var text, rest, all;
+
+                text = confirmedQuery ? confirmedQuery + " " + toMatch : toMatch;
+                rest = suggest.slice(toMatch.length);
+                all = text + rest;
+
+                $input.val(all);
+                $input.selectRange(text.length, all.length);
+
+              }
+              else {
+                $input.val(exists);
+              }
+
+              return false;
+            },
+
+            //re-insert actual text w/ optional addition of autocompleted stuff
+            select : function( event, ui ){
+              $input.val( $input.data("ui-autocomplete").suggestedQ);
+              //move cursor before final " or )
+              var final = ui.item.value.split("").reverse()[0];
+              if ( final == '"' || final == ")" ){
+                $input.selectRange($input.val().length - 1);
+              }
+
+              analytics('send', 'event', 'interaction', 'autocomplete-used', ui.item.value);
+              return false;
+
             }
 
-            toMatch = findActiveAndInactive(request.term).active;
-            if (!toMatch)
-              return
-            //testing each entry's "match" var in autocomplete array against the toMatch segment
-            //then returning a uniqued array of matches
-            matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(toMatch), "i");
-            toReturn  = $.grep(autocompleteArray, function (item) {
-              return matcher.test(item.match);
-            });
-            toReturn = _.uniq(toReturn, false, function(item){
-              return item.label
-            });
-            response(toReturn);
-          },
+          });
 
-          /* insert a suggestion: requires autofocus:true
-           * to be set if you want to show by default without user
-           * keyboard navigation or mouse hovering
-           * */
-          focus: function( event, ui ) {
-
-            var val = $input.val().replace(/^\s+/,""),
-              suggest = ui.item.value;
-
-            var exists, toMatch, confirmedQuery, splitQuery;
-
-            var currentlySelected = getSelectedText();
-            //might be moving down the autocomplete list
-            if (currentlySelected){
-              exists = val.slice(0, val.length - currentlySelected.length)
+          $input.data("ui-autocomplete")._renderItem = function( ul, item ) {
+            if (item.desc){
+              return $( "<li>" )
+                  .append( "<a>" + item.label + "<span class=\"s-auto-description\">&nbsp;&nbsp;" + item.desc + "</span></a>" )
+                  .appendTo( ul );
             }
             else {
-              exists = val;
+              return $( "<li>" )
+                  .append( "<a>" + item.label + "</a>" )
+                  .appendTo( ul );
             }
+          };
 
-            splitQuery = findActiveAndInactive(exists);
-
-            toMatch = splitQuery.active,
-              confirmedQuery = splitQuery.inactive;
-
-            if (confirmedQuery){
-              //suggestedQ will be inserted if user accepts it
-              $input.data("ui-autocomplete").suggestedQ = confirmedQuery + " " + ui.item.value;
+          $input.keydown(function (event) {
+            if (event.keyCode == 8) {
+              performSearch = false; //backspace, do not perform the search
             }
-            else {
-              $input.data("ui-autocomplete").suggestedQ = ui.item.value;
+            else if (event.keyCode == 32 ){ //space, do not perform the search
+              performSearch = false;
+            } else {
+              performSearch = true; //perform the search
             }
-
-            // only insert text if the words match from the beginning
-            // not, for instance, if user typed "refereed" and the matching string is "property:refereed"
-            if ( suggest.indexOf(toMatch) == 0 ) {
-
-              var text, rest, all;
-
-              text = confirmedQuery ? confirmedQuery + " " + toMatch : toMatch;
-              rest = suggest.slice(toMatch.length);
-              all = text + rest;
-
-              $input.val(all);
-              $input.selectRange(text.length, all.length);
-
-            }
-            else {
-              $input.val(exists);
-            }
-
-            return false;
-          },
-
-          //re-insert actual text w/ optional addition of autocompleted stuff
-          select : function( event, ui ){
-            $input.val( $input.data("ui-autocomplete").suggestedQ);
-            //move cursor before final " or )
-            var final = ui.item.value.split("").reverse()[0];
-            if ( final == '"' || final == ")" ){
-              $input.selectRange($input.val().length - 1);
-            }
-
-            analytics('send', 'event', 'interaction', 'autocomplete-used', ui.item.value);
-            return false;
-
-          }
-
-      });
-
-        $input.data("ui-autocomplete")._renderItem = function( ul, item ) {
-          if (item.desc){
-            return $( "<li>" )
-              .append( "<a>" + item.label + "<span class=\"s-auto-description\">&nbsp;&nbsp;" + item.desc + "</span></a>" )
-              .appendTo( ul );
-          }
-          else {
-            return $( "<li>" )
-              .append( "<a>" + item.label + "</a>" )
-              .appendTo( ul );
-          }
-        };
-
-        $input.keydown(function (event) {
-          if (event.keyCode == 8) {
-            performSearch = false; //backspace, do not perform the search
-          }
-          else if (event.keyCode == 32 ){ //space, do not perform the search
-            performSearch = false;
-          } else {
-            performSearch = true; //perform the search
-          }
+          });
         });
 
         this.$('[data-toggle="tooltip"]').tooltip();
