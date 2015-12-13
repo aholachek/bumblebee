@@ -132,7 +132,8 @@ require.config({
 
       },
       plugins: {}
-      }
+      },
+
   },
 
   // Configuration for the facades (you can pick specific implementation, just for your
@@ -164,11 +165,11 @@ require.config({
     'jquery': 'libs/jquery/jquery',
     'backbone': 'libs/backbone/backbone',
     'hbs': 'libs/require-handlebars-plugin/hbs',
-    'jsx': 'libs/jsx-requirejs-plugin/jsx',
-    'react': 'libs/react/react',
     'text':    'libs/requirejs-plugins/text',
-    JSXTransformer: "libs/babel/browser",
-
+    'jsx': 'libs/requirejs-react-jsx/jsx',
+    'react': 'libs/react/react',
+    'reactDOM': 'libs/react/react-dom',
+    'babel' : 'libs/babel/browser',
 
     'async': 'libs/requirejs-plugins/async',
     'marionette' : 'libs/marionette/backbone.marionette',
@@ -203,12 +204,11 @@ require.config({
   },
 
   hbs : {
-    'templateExtension' : 'html',
+    templateExtension : 'html',
     helpers: false
   },
 
   jsx: {
-    fileExtension: '.jsx',
     transformer: 'babel',
     babelOptions: {
       sourceMaps: 'inline'

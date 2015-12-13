@@ -12,7 +12,7 @@ define([
 
     render : function(){
 
-      //return (<div></div>)
+      return (<div>{this.props.msg}</div>)
     }
 
 

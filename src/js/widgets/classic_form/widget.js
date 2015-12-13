@@ -6,7 +6,10 @@ define([
   "jquery-ui",
   "js/widgets/paper_search_form/topterms",
   "analytics",
-  //"jsx!./view",
+  "jsx!js/widgets/classic_form/view",
+  "reactDOM",
+    "react"
+
 ], function(
   BaseWidget,
   ApiQuery,
@@ -14,8 +17,13 @@ define([
   FormTemplate,
   JQueryUI,
   AutocompleteData,
-  analytics
+  analytics,
+  ReactView,
+  ReactDOM,
+  React
+
   ){
+
 
   //for autocomplete
   function split( val ) {
@@ -207,6 +215,17 @@ define([
       this.view.render();
       //set focus to author field
       this.view.$("#classic-author").focus();
+      this.view.$el.empty();
+
+      var a = React.createElement(ReactView, {msg : "foo"});
+
+      var that = this;
+
+      ReactDOM.render(a, this.view.el);
+
+      setTimeout(function(){
+        ReactDOM.render(React.createElement(ReactView, {msg : "bloboldldldl"}), that.view.el);
+      }, 2000)
     },
 
     submitForm : function(queryDict){
