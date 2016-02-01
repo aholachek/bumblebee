@@ -70,6 +70,14 @@ define([
         // to this event on the view
         this.listenTo(this.view, "toggle-all", this.triggerBulkAction);
 
+        //add orcid info to records that don't already have it
+        //update is triggered 1x after a series of add or remove events
+        this.listenTo(this.hiddenCollection, "records-added", function(){
+            if (this.getBeeHive().getObject("User").isOrcidModeOn()){
+              this.addOrcidInfo();
+            }
+          });
+
       },
 
       defaultQueryArguments: {

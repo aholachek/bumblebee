@@ -115,6 +115,9 @@ define([
 
         if (docs && docs.length) {
           this.hiddenCollection.add(docs, {merge: true});
+          //in case widgets want to do more processing (used by orcid extension)
+          debugger
+          this.hiddenCollection.trigger("records-added");
 
           if (pagination.showRange) {
             // we must update the model before updating collection because the showRange

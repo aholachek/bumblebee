@@ -78,6 +78,11 @@ define([
           });
 
           this.on('orcid-update-finished', this.mergeDuplicateRecords);
+
+          //add orcid info to records that don't already have it
+          this.listenTo(this.hiddenCollection, "update", function(){
+              this.addOrcidInfo();
+          });
         },
 
         orcidWidget : true,
@@ -262,6 +267,7 @@ define([
 
                   response.setApiQuery(new ApiQuery(params));
                   self.processResponse(response);
+
                   self.model.set({
                     orcidID : params.orcid,
                     orcidUserName : params.firstName + " " + params.lastName,
