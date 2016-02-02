@@ -25,7 +25,18 @@ define([
 
       return function(WidgetClass) {
         var queryUpdater = new ApiQueryUpdater('OrcidExtension');
+        var processDocs = WidgetClass.prototype.processDocs;
+        var activate = WidgetClass.prototype.activate;
         var onAllInternalEvents = WidgetClass.prototype.onAllInternalEvents;
+
+        WidgetClass.prototype.activate = function(beehive) {
+          this.setBeeHive(beehive);
+          activate.apply(this, arguments);
+          var orcidApi = beehive.getService('OrcidApi');
+          //if (!orcidApi) {
+          //  throw new Error('OrcidApi is missing');
+          //}
+        };
 
         WidgetClass.prototype._getOrcidInfo = function(recInfo) {
           var msg = {actions: {} , provenance : null};
@@ -66,64 +77,92 @@ define([
           return msg;
         },
 
-            WidgetClass.prototype.addOrcidInfo = function() {
+            WidgetClass.prototype.addOrcidInfo = function(docs) {
               var self = this;
               // add orcid info to the documents
               var orcidApi = this.getBeeHive().getService('OrcidApi');
+
+              if (!orcidApi || !orcidApi.hasAccess()) {
+                return docs;
+              }
+
               var recInfo;
               var counter = 0;
 
-              //find records in the collection without orcid information added yet
-              var noOrcidInfo = this.hiddenCollection.filter(function(m){
-                return !m.get("orcid");
-              });
-
-              _.each(noOrcidInfo, function(model) {
-                recInfo = orcidApi.getRecordInfo(model.toJSON());
-
+              _.each(docs, function(d) {
+                recInfo = orcidApi.getRecordInfo(d);
                 if (recInfo.state() == 'pending') {
                   counter += 1;
-
                   recInfo.done(function(rInfo) {
-
                     counter -= 1;
-                    model.set('orcid', self._getOrcidInfo(rInfo));
 
-                    if (counter == 0) { self.trigger('orcid-update-finished');  }
-                  });
+                    var actions = self._getOrcidInfo(rInfo);
 
-                  recInfo.fail(function() {
-                    counter -= 1;
-                    // very likely, the request timed out
-                    // keep the actions and let user redo the operation
-                    if (self.hiddenCollection) {
-                      var o = _.extend({}, model.get('orcid') || {});
-                      delete o.pending;
-                      o.error = 'Orcid API reported error';
-                      model.set('orcid', o); //TODO: distinguish different types of errors
+                    // get the model for this document
+                    if (self.collection && self.collection.findWhere) {
+                      var model = self.collection.findWhere({bibcode: d.bibcode});
+                      if (model) {
+                        model.set('orcid', actions); // if not found, we can ignore this update (the view changed already)
+                      }
                     }
 
-                    if (counter == 0) {  self.trigger('orcid-update-finished');  }
-
+                    if (counter == 0) {
+                      self.trigger('orcid-update-finished');
+                    }
                   });
-                  model.set('orcid', {pending: true});
+                  recInfo.fail(function(data) {
+                    counter -= 1;
+
+                    // very likely, the request timed out
+                    // keep the actions and let user redo the operation
+                    if (self.collection && self.collection.findWhere) {
+                      var model = self.collection.findWhere({bibcode: d.bibcode});
+                      if (model) {
+                        var o = _.extend({}, model.get('orcid') || {});
+                        delete o.pending;
+                        o.error = 'Orcid API reported error';
+                        model.set('orcid', o); //TODO: distinguish different types of errors
+                      }
+                    }
+
+                    if (counter == 0) {
+                      self.trigger('orcid-update-finished');
+                    }
+                  });
+                  d.orcid = {pending: true};
                 }
                 else {
                   recInfo.done(function(rInfo) {
-                    model.set("orcid", self._getOrcidInfo(rInfo));
+                    d.orcid = self._getOrcidInfo(rInfo);
                     // enhance the ORCID record with an identifier
                     // the bibcode, if there, was discovered from our api
-                    if (!model.get("bibcode") && rInfo.bibcode)
-                      model.set("bibcode", rInfo.bibcode);
+                    if (!d.identifier && rInfo.bibcode)
+                      d.identifier = rInfo.bibcode;
                   });
                 }
               });
 
-              if (counter == 0) {  self.trigger('orcid-update-finished');    }
+              if (counter == 0) {
+                self.trigger('orcid-update-finished', docs);
+              }
 
+              return docs;
             };
 
-        
+        WidgetClass.prototype.processDocs = function(apiResponse, docs, pagination) {
+          var docs = processDocs.apply(this, arguments);
+          var user = this.getBeeHive().getObject('User');
+          //for results list only show if orcidModeOn, for orcid big widget show always
+          if (user && user.isOrcidModeOn() || this.orcidWidget ){
+            var result = this.addOrcidInfo(docs);
+            if (pagination.numFound != result.length) {
+              _.extend(pagination, this.getPaginationInfo(apiResponse, docs));
+            }
+            return result;
+          }
+          return docs;
+        };
+
         /**
          * Enhances the model with ADS metadata (iff we are coming from orcid)
          * or with Orcid metadata, iff we are coming from ADS. So, it works

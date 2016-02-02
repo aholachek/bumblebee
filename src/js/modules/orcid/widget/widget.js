@@ -81,6 +81,7 @@ define([
 
           //add orcid info to records that don't already have it
           this.listenTo(this.hiddenCollection, "update", function(){
+            debugger
               this.addOrcidInfo();
           });
         },
