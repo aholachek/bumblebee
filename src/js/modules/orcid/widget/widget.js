@@ -78,6 +78,12 @@ define([
           });
 
           this.on('orcid-update-finished', this.mergeDuplicateRecords);
+
+          //add orcid info to records that don't already have it
+          this.listenTo(this.hiddenCollection, "records-added", function(){
+             this.addOrcidInfo();
+           });
+
         },
 
         orcidWidget : true,
