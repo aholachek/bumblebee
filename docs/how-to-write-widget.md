@@ -16,7 +16,7 @@ well, we don't even have a widget to test, but we start from the test anyway:
 
 
 ```bash
-  $ cp test/mocha/example_test.template.js test/mocha/widgets/beautiful_widget.spec.js
+ $ cp test/mocha/example_test.template.js test/mocha/js/widgets/beautiful_widget.spec.js
 ```  
 
 
@@ -31,7 +31,7 @@ Now, edit your ```sandbox.js```:
 
 ```javascript
 var tests  = [
-    'test/mocha/widgets/beautiful_widget.spec.js'
+     [ 'widgets/beautiful_widget.spec.js' ];
   ];
 ``` 
 
