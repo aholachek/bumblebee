@@ -43,22 +43,37 @@ define([
     // Helper function to update facets, replacing the SIMBAD identifier with
     // the associated SIMBAD canonical object name in the facet entry 'title' attribute
     widget.updater = function(facet) {
-      // if facet comes from widget.collection.models, value follows from attributes (facet.attributes.value)
-      if ('attributes' in facet) {
-        var fct = facet.attributes;
-      } else {
-        var fct = facet;
+      // if facet comes from widget.collection.models,
+      // value follows from attributes (facet.attributes.value)
+
+      //this function is used to get the name
+      function splitNum(value){
+        if (value[0] === '1') {
+          var vv = value.split("/");
+          return vv[vv.length-1];
+        }
       }
-      var v = fct.value;
-      if (v.charAt(0)==='1') {
-        var vv = v.split("/");
-        var objId = vv[vv.length-1];
+      if (facet instanceof Backbone.Model){
+        //directly update the model
+        var objId = splitNum(facet.get("value"));
+
+        var title = facet.get("title");
+        var oname = widget._cache.getIfPresent(objId);
+        if (objId && objId === title && oname) {
+          facet.set("title", oname);
+        }
       }
-      var title = fct.title;
-      var oname = widget._cache.getIfPresent(objId);
-      if (objId && objId === title && oname) {
-        fct.title = oname;
-      };
+      else {
+        // just update the json data, it will be explicitly set into the collection
+        // the processResponse function calls updateCollectionAndView
+        var objId = splitNum(facet.value);
+        var title = facet.title;
+        var oname = widget._cache.getIfPresent(objId);
+        if (objId && objId === title && oname) {
+          facet.title = oname;
+        }
+      }
+
     };
     // Main facet callback function
     widget.processFacetResponse = function(apiResponse, data) {
@@ -102,11 +117,10 @@ define([
         for (var objId in apiResponse.attributes) {
           widget._cache.put(objId, apiResponse.attributes[objId]['canonical']);
         }
-        widget.collection.models.forEach( function(v) {
-          if (v.children.models.length > 0) {
-            v.children.models.forEach(widget.updater);
-          }
+        widget.collection.forEach( function(v) {
+            v.children.forEach(widget.updater);
         });
+
       }
     }
     // Get object information from the object search micro service
