@@ -86,25 +86,17 @@ module.exports = function(grunt) {
         options: {
           baseUrl: 'dist/js',
           allowSourceOverwrites: true,
+          stubModules : ['babel', 'es6'],
+
           keepBuildDir: true,
           generateSourceMaps: false,
           removeCombined: true,
-          optimize: 'uglify2',
           findNestedDependencies: true,
           wrap: true,
           preserveLicenseComments: false,
           dir: 'dist/js',
-          uglify2: {
-            output: {
-              beautify: false
-            },
-            warnings: true,
-            mangle: false,
-            compress : {
-              drop_console: true,
-              drop_debugger: true
-            }
-          }
+          optimize: 'uglify2'
+
         }
       },
       release_concatenated : {
@@ -147,17 +139,9 @@ module.exports = function(grunt) {
           wrap: true,
           preserveLicenseComments: false,
           generateSourceMaps: false,
-          uglify2: {
-            output: {
-              beautify: false
-            },
-            warnings: true,
-            mangle: false,
-            compress : {
-              drop_console: true,
-              drop_debugger: true
-            }
-          }
+
+          stubModules : ['babel', 'es6'],
+          optimize: 'uglify2'
         }
       },
       release_css: {
@@ -455,11 +439,23 @@ module.exports = function(grunt) {
             flatten: true
           },
           {
-            //surely there's a better pattern for recursive file copying?
             cwd: 'bower_components/bootstrap-sass/assets/stylesheets/',
             src: ['*', '**'],
             expand: true
-          }
+          },
+          {
+            src: ['bower_components/react/*.js'],
+            dest: 'src/libs/react/',
+            expand: true,
+            flatten: true
+          },
+          {
+            src: ['bower_components/requirejs-babel/*.js'],
+            dest: 'src/libs/requirejs-babel-plugin/',
+            expand: true,
+            flatten: true
+          },
+
 
         ]
       },
@@ -547,13 +543,6 @@ module.exports = function(grunt) {
       options: {
         src: ['src/js/**/*.js'],
         coverage_dir: 'test/coverage/PhantomJS 1.9.2 (Linux)/'
-      }
-    },
-
-    // minifying files we need to minify ourselves
-    uglify: {
-      bumblebee_minify_files : {
-        files : {"dist/libs/backbone/backbone-min.js": "dist/libs/backbone/backbone.js"}
       }
     },
 
@@ -983,8 +972,7 @@ module.exports = function(grunt) {
       'requirejs:release_individual', 'requirejs:release_concatenated','requirejs:release_css',
       'hash_require:js', 'hash_require:css',
       'copy:keep_original', 'copy:bumblebee_app',
-      'assemble',
-      'uglify'
+      'assemble'
   ]);
 
   grunt.registerTask("sauce", ['env:dev',  "sass", "autoprefixer", "exec:git_describe", 'express:dev', "saucelabs-mocha"]);

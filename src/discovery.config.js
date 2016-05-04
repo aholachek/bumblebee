@@ -1,6 +1,8 @@
 // Main config file for the Discovery application
 require.config({
 
+
+
   // Initialize the application with the main application file or if we run
   // as a test, then load the test unittests
   deps: (function(){
@@ -21,6 +23,13 @@ require.config({
   // Configuration we want to make available to modules of ths application
   // see: http://requirejs.org/docs/api.html#config-moduleconfig
   config: {
+
+    'es6': {
+            'resolveModuleSource': function(source) {
+                return 'es6!'+source;
+            }
+        },
+
     'js/widgets/export/widget': {
       url: 'http://adsabs-classic-exports-service.elasticbeanstalk.com',
       target: '/'
@@ -41,14 +50,14 @@ require.config({
           QueryMediator: 'js/components/query_mediator',
           Diagnostics: 'js/bugutils/diagnostics',
           AlertsController: 'js/wraps/alerts_mediator',
-          Orcid: 'js/modules/orcid/module',
+          Orcid: 'js/modules/orcid/module'
         },
         services: {
           Api: 'js/services/api',
           PubSub: 'js/services/pubsub',
           Navigator: 'js/apps/discovery/navigator',
           PersistentStorage: 'js/services/storage',
-          HistoryManager: 'js/components/history_manager',
+          HistoryManager: 'js/components/history_manager'
         },
         objects: {
           User: 'js/components/user',
@@ -112,7 +121,7 @@ require.config({
         DatabaseFacet: 'js/wraps/database_facet',
         GrantsFacet: 'js/wraps/grants_facet',
         KeywordFacet: 'js/wraps/keyword_facet',
-		ObjectFacet: 'js/wraps/object_facet',
+		    ObjectFacet: 'js/wraps/object_facet',
         RefereedFacet: 'js/wraps/refereed_facet',
         VizierFacet: 'js/wraps/vizier_facet',
         GraphTabs : 'js/wraps/graph_tabs',
@@ -167,6 +176,13 @@ require.config({
 
     // 3rd party dependencies
     'jquery': 'libs/jquery/jquery',
+    'react' : 'libs/react/react-with-addons',
+    'react-dom' : 'libs/react/react-dom',
+     es6: 'libs/requirejs-babel-plugin/es6',
+     babel: 'libs/requirejs-babel-plugin/babel-5.8.34.min',
+    'redux' : 'libs/redux/index',
+    'react-redux' : 'libs/react-redux/index',
+    'redux-thunk' : 'libs/redux-thunk/index',
     'backbone': 'libs/backbone/backbone',
     'hbs': 'libs/require-handlebars-plugin/hbs',
     'async': 'libs/requirejs-plugins/async',
@@ -207,6 +223,7 @@ require.config({
     'templateExtension' : 'html',
     helpers: false
   },
+
 
   shim: {
 
