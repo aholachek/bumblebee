@@ -94,6 +94,7 @@ define(['underscore',
       },
 
       doQueryTranslation: function(q) {
+
         var d = $.Deferred(),
             pubsub = this.getPubSub(),
             options = {
@@ -175,6 +176,8 @@ define(['underscore',
           // first define a callback function to process the response of the micro service
           // and bind it to "this" so that we can use the trigger
           var callback = function(v){
+            //temp hack
+            v.query = v.query.replace("simbid0", "simbid:");
             var request = new ApiQuery({
               q: v.query
             });
